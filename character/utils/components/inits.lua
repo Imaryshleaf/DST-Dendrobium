@@ -1,0 +1,3 @@
+-- Initialize container component.
+-- use "character/utils/components/container"
+-- AddReplicableComponent("characterspecific")
