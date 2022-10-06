@@ -102,6 +102,10 @@ unusedkey = "0", "T", "N", "J", "H", "K", "L", "O", "R", "X"
 "[BUG FIX] Probably, hit count meter will be hidden for unknown cause"
 "Cooldown pressing key skill reduced from 2 to 0.5 second"
 
+*v18 (October, 6 2022)
+"Finitiuse component on scythe item removed"
+"Sanity cost for Dawn Light reduced from 40 to 20"
+"Second form walk speed and run speed are increased to 1.5"
 
 ----------------------------
 Inventory Images (Atlas):

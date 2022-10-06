@@ -25,7 +25,7 @@ if act.doer ~= nil and act.target ~= nil and
 			act.target.components.orchidacite and 
                 not act.target.components.health:IsDead() and
 					act.doer.components.sanity and -- requirements
-						act.doer.components.sanity.current >= (40) then
+						act.doer.components.sanity.current >= (20) then
 					act.target.components.orchidacite:DawnLight(act.doer)
                 return true	
             else 

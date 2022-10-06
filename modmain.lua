@@ -643,7 +643,7 @@ local function RestTick(inst)
     local SANITY_REST_PER_TICK = 1
     local HEALTH_REST_PER_TICK = 1
 	local SLEEP_TEMP_PER_TICK = 1
-	local SLEEP_TARGET_TEMP = 27
+	local SLEEP_TARGET_TEMP = 40
     if inst.components.hunger ~= nil then
         inst.components.hunger:DoDelta(HUNGER_REST_PER_TICK, true, true)
         isstarving = inst.components.hunger:IsStarving()

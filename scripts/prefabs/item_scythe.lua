@@ -5,16 +5,12 @@ local assets = {
 	Asset("IMAGE", "images/inventoryimages/scythe.tex"),
 }
 
-local MAX_USES = 500;
-
 local function onequip(inst, owner)
 	owner.AnimState:OverrideSymbol("swap_object", "swap_scythe", "swap_scythe")
     owner.AnimState:Show("ARM_carry")
     owner.AnimState:Hide("ARM_normal")
 	--
 	inst.SoundEmitter:PlaySound("dontstarve/wilson/equip_item_gold")
-	local finitepercent = inst.components.finiteuses:GetDebugString()
-	inst.components.talker:Say("[ Scythe ] \n[ USES ] : "..(finitepercent).."%")
 end
 
 local function onunequip(inst, owner)
@@ -74,11 +70,7 @@ local function fn()
     inst:AddComponent("equippable")
     inst.components.equippable:SetOnEquip(onequip)
     inst.components.equippable:SetOnUnequip(onunequip)
-	
-    inst:AddComponent("finiteuses")
-    inst.components.finiteuses:SetMaxUses(MAX_USES)
-    inst.components.finiteuses:SetUses(MAX_USES)
-    inst.components.finiteuses:SetOnFinished(inst.Remove)
+
 	-- 
 	inst:AddComponent("classifieditem")
 	inst.components.classifieditem:SetOwner("dendrobium")

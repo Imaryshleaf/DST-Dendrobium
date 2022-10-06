@@ -1082,8 +1082,8 @@ local master_postinit = function(inst)
 	inst:ListenForEvent("Transform[UP]", function(inst)
 		inst.components.builder.science_bonus = 1
 		inst.components.builder.magic_bonus = 1
-		inst.components.locomotor.walkspeed = TUNING.WILSON_WALK_SPEED*1.35
-		inst.components.locomotor.runspeed = TUNING.WILSON_RUN_SPEED*1.35
+		inst.components.locomotor.walkspeed = TUNING.WILSON_WALK_SPEED*1.5
+		inst.components.locomotor.runspeed = TUNING.WILSON_RUN_SPEED*1.5
 	end)
 	
 	inst:ListenForEvent("Transform[DOWN]", function(inst)

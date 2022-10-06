@@ -616,7 +616,7 @@ function Orchidacite:DawnLight()
 		light:SetDuration(729) -- 1 and a half day
 		-- Cost
 		if owner.components.sanity then
-			owner.components.sanity:DoDelta(-40)
+			owner.components.sanity:DoDelta(-20)
 		end	
 	end
 end
