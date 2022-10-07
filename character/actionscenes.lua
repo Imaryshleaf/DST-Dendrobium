@@ -63,6 +63,21 @@ if act.doer ~= nil and act.target ~= nil and
 	end
 end)
 
+-- A string "SHADOWS" under cursor
+AddAction("ACTSHADOWFRIENDS", "Shadow", function(act)
+if act.doer ~= nil and act.target ~= nil and 
+	act.doer:HasTag("Dendrobium") and 
+		act.doer.spellpower_count == (5) and 
+			act.target.components.orchidacite and 
+                not act.target.components.health:IsDead() and
+						act.doer.components.orchidacite.min_magic >= (20) then
+					act.target.components.orchidacite:ShadowFriend(act.doer)
+                return true	
+            else 
+		return false
+	end
+end)
+
 AddComponentAction("SCENE", "orchidacite", function(inst, doer, actions, right)
 	if right then
 		if inst:HasTag("Dendrobium") and inst.spellpower_count == (1) and
@@ -88,6 +103,12 @@ AddComponentAction("SCENE", "orchidacite", function(inst, doer, actions, right)
 			table.insert(actions, GLOBAL.ACTIONS.ACTLIGHTNINGSMITE)	
 		end
 	end
+	if right then
+		if inst:HasTag("Dendrobium") and inst.spellpower_count == (5) and
+				inst == doer and (rider == nil or not rider:IsRiding()) then
+			table.insert(actions, GLOBAL.ACTIONS.ACTSHADOWFRIENDS)	
+		end
+	end
 end)
 
 -- Check: "character/stategraphs.lua"
@@ -102,3 +123,6 @@ AddStategraphActionHandler("wilson_client", GLOBAL.ActionHandler(GLOBAL.ACTIONS.
 
 AddStategraphActionHandler("wilson", GLOBAL.ActionHandler(GLOBAL.ACTIONS.ACTLIGHTNINGSMITE, "LightningSmiteSG"))
 AddStategraphActionHandler("wilson_client", GLOBAL.ActionHandler(GLOBAL.ACTIONS.ACTLIGHTNINGSMITE, "LightningSmiteSG"))
+
+AddStategraphActionHandler("wilson", GLOBAL.ActionHandler(GLOBAL.ACTIONS.ACTSHADOWFRIENDS, "ShadownFriendsSG"))
+AddStategraphActionHandler("wilson_client", GLOBAL.ActionHandler(GLOBAL.ACTIONS.ACTSHADOWFRIENDS, "ShadownFriendsSG"))

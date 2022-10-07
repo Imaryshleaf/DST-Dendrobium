@@ -106,6 +106,12 @@ unusedkey = "0", "T", "N", "J", "H", "K", "L", "O", "R", "X"
 "Finitiuse component on scythe item removed"
 "Sanity cost for Dawn Light reduced from 40 to 20"
 "Second form walk speed and run speed are increased to 1.5"
+"Added new entities prefab shadows, created a file shadow brain"
+
+*v19 (October, 7 2022)
+"Added new sg shadow"
+"Completing code for shadows"
+"Extending shadow brain"
 
 ----------------------------
 Inventory Images (Atlas):

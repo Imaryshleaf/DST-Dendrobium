@@ -944,6 +944,23 @@ local function SanityRegenfn(inst)
     return delta
 end
 
+-- Pet (Followers)
+local function DoEffects(pet)
+	local x, y, z = pet.Transform:GetWorldPosition()
+	SpawnPrefab("statue_transition_2").Transform:SetPosition(x, y, z)
+end
+local function OnSpawnPetFn(inst, pet)
+	if pet:HasTag("Dendrobiumshadows") then
+		pet:DoTaskInTime(0, DoEffects)
+	end
+end
+local function OnDespawnPetFn(inst, pet)
+	if pet:HasTag("Dendrobiumshadows") then
+		DoEffects(pet)
+		pet:Remove()
+	end
+end
+
 -- Loading or Spawning the Character
 local function OnLoadFn(inst)
     inst:ListenForEvent("ms_respawnedfromghost", OnBecameHumanFn)
@@ -970,7 +987,7 @@ end
 -- This initializes for both the server and client. Tags can be added here.
 local common_postinit = function(inst) 
 	-- Minimap icon
-	inst.MiniMapEntity:SetIcon( "dendrobium.tex" )
+	inst.MiniMapEntity:SetIcon("dendrobium.tex")
 
 	-- Book Builder
 	inst:AddTag("bookbuilder")
@@ -1050,20 +1067,20 @@ local master_postinit = function(inst)
 	-- Custom character temperature modification
 	inst.components.temperature.inherentinsulation = 5
 	inst.components.temperature.inherentsummerinsulation = 5
-
-	-- Health 
+	
+	-- Health
 	local percent = inst.components.health:GetPercent()
 	inst.components.health:SetMaxHealth(100)
     inst.components.health:SetPercent(percent)
 
-	-- Hunger 
+	-- Hunger
     local hunger_percent = inst.components.hunger:GetPercent()
 	inst.components.hunger:SetMax(300)
     inst.components.hunger:SetPercent(hunger_percent)
 	inst.components.hunger:SetKillRate(1.25)
     inst.components.hunger:SetRate(TUNING.WILSON_HUNGER_RATE * TUNING.WARLY_HUNGER_RATE_MODIFIER)
 
-	-- Sanity 
+	-- Sanity
 	local sanity_percent = inst.components.sanity:GetPercent()
 	inst.components.sanity:SetMax(100)
     inst.components.sanity:SetPercent(sanity_percent)
@@ -1071,7 +1088,7 @@ local master_postinit = function(inst)
 	inst.components.sanity.rate_modifier = 1
 	inst.components.sanity.night_drain_mult = 0
 
-	-- Custom eater
+	-- Eater modification
 	inst.components.eater:SetOnEatFn(OnEatFoodsFn)
 	inst.components.eater.stale_hunger = TUNING.WICKERBOTTOM_STALE_FOOD_HUNGER
 	inst.components.eater.stale_health = TUNING.WICKERBOTTOM_STALE_FOOD_HEALTH
@@ -1079,6 +1096,13 @@ local master_postinit = function(inst)
 	inst.components.eater.spoiled_health = TUNING.WICKERBOTTOM_SPOILED_FOOD_HEALTH
 	inst.components.eater.strongstomach = false 
 
+	-- Extra pet
+	local totalShadow = 4
+	local defMaxPet = inst.components.petleash:GetMaxPets()
+	inst.components.petleash:SetMaxPets(defMaxPet+totalShadow)
+    inst.components.petleash:SetOnSpawnFn(OnSpawnPetFn)
+    inst.components.petleash:SetOnDespawnFn(OnDespawnPetFn)
+	
 	inst:ListenForEvent("Transform[UP]", function(inst)
 		inst.components.builder.science_bonus = 1
 		inst.components.builder.magic_bonus = 1
@@ -1093,16 +1117,12 @@ local master_postinit = function(inst)
 		inst.components.locomotor.runspeed = TUNING.WILSON_RUN_SPEED*1.25
 	end)
 	
-	-- Combat damage default*2
+	-- Combat damage modification
 	inst.components.combat:SetDefaultDamage(20)
+	inst.components.combat.damagemultiplier = 1.2
 
 	-- Character can read book
 	inst:AddComponent("reader")
-
-	-- Other player gain sanity when close to the character
-	inst:AddComponent("sanityaura")
-	inst.components.sanityaura.aura = 0.25
-	inst.components.sanityaura.aurafn = CalcSanityAuraFn
 
 	-- Reize character size
 	inst.Transform:SetScale(1, 1, 1)
@@ -1112,6 +1132,11 @@ local master_postinit = function(inst)
 	inst.components.werebeast:SetOnWereFn(SetWere)
 	inst.components.werebeast:SetOnNormalFn(SetNormal)
 	inst.components.werebeast:SetTriggerLimit(1)
+
+	-- Fullmoon sanity aura
+	inst:AddComponent("sanityaura")
+	inst.components.sanityaura.aura = .2
+	inst.components.sanityaura.aurafn = CalcSanityAuraFn
 
 	-- Other extra Components
 	inst:AddComponent("orchidacite")

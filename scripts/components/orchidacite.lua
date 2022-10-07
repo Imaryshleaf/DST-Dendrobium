@@ -694,4 +694,37 @@ function Orchidacite:LightningSmite()
 	end
 end
 
+-- Spell Power (Book | Shadow Friends): 4
+local function NoHoles(pt)
+    return not TheWorld.Map:IsPointNearHole(pt)
+end
+function Orchidacite:ShadowFriend()
+	local owner = self.inst;
+	-- Spawn dist
+	local theta = math.random() * 2 * PI
+    local pt = self.inst:GetPosition()
+    local radius = math.random(3, 6)
+    local offset = FindWalkableOffset(pt, theta, radius, 12, true, true, NoHoles)
+    if offset ~= nil then
+        pt.x = pt.x + offset.x
+        pt.z = pt.z + offset.z
+    end
+	if not owner.components.leader:IsBeingFollowedBy("dendrobium_shadow_duelist") then
+		owner.components.petleash:SpawnPetAt(pt.x, 0, pt.z, "dendrobium_shadow_duelist")
+	elseif not owner.components.leader:IsBeingFollowedBy("dendrobium_shadow_lumber") then
+		owner.components.petleash:SpawnPetAt(pt.x, 0, pt.z, "dendrobium_shadow_lumber")
+	elseif not owner.components.leader:IsBeingFollowedBy("dendrobium_shadow_digger") then
+		owner.components.petleash:SpawnPetAt(pt.x, 0, pt.z, "dendrobium_shadow_digger")
+	elseif not owner.components.leader:IsBeingFollowedBy("dendrobium_shadow_miner") then
+		owner.components.petleash:SpawnPetAt(pt.x, 0, pt.z, "dendrobium_shadow_miner")
+	else 
+		owner.components.talker:Say("It seems all my friends already here", 2)
+	end
+	
+	-- Cost
+	if owner.components.orchidacite then
+		owner.components.orchidacite:DoDelta("magic", -20)
+	end
+end
+
 return Orchidacite

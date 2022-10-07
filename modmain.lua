@@ -44,7 +44,8 @@ PrefabFiles = {
 	"item_soul_orb",
 	"item_noctilucous_jade",
 	-- Entities
-	"treasure_trunk",
+	"ents_treasure_trunk",
+	"ents_dendrobium_shadow",
 	-- Fx
 	"fx_dark_shield",
 	"fx_fire_ring",
@@ -894,22 +895,26 @@ AddModRPCHandler("dendrobium", "SpellSwitcher", function(inst)
 	if  inst.spellpower_count == (0) then
 		DoDeltaCost(inst, "energy", -1)
 		inst.spellpower_count = inst.spellpower_count + 1
-		inst.components.talker:Say("Spell Power \n[ - [1/4] - ]", 2)
+		inst.components.talker:Say("Spell Power \n[ - [1/5] - ]", 2)
 	elseif inst.spellpower_count == (1) then
 		DoDeltaCost(inst, "energy", -1)
 		inst.spellpower_count = inst.spellpower_count + 1
-		inst.components.talker:Say("Spell Power \n[ - [2/4] - ]", 2)
+		inst.components.talker:Say("Spell Power \n[ - [2/5] - ]", 2)
 	elseif inst.spellpower_count == (2) then
 		DoDeltaCost(inst, "energy", -1)
 		inst.spellpower_count = inst.spellpower_count + 1
-		inst.components.talker:Say("Spell Power \n[ - [3/4] - ]", 2)
+		inst.components.talker:Say("Spell Power \n[ - [3/5] - ]", 2)
 	elseif inst.spellpower_count == (3) then
 		DoDeltaCost(inst, "energy", -1)
 		inst.spellpower_count = inst.spellpower_count + 1
-		inst.components.talker:Say("Spell Power \n[ - [4/4] - ]", 2)
+		inst.components.talker:Say("Spell Power \n[ - [4/5] - ]", 2)
 	elseif inst.spellpower_count == (4) then
 		DoDeltaCost(inst, "energy", -1)
-		inst.spellpower_count = inst.spellpower_count - 4
+		inst.spellpower_count = inst.spellpower_count + 1
+		inst.components.talker:Say("Spell Power \n[ - [5/5] - ]", 2)
+	elseif inst.spellpower_count == (5) then
+		DoDeltaCost(inst, "energy", -1)
+		inst.spellpower_count = inst.spellpower_count - 5
 		inst.components.talker:Say("Spell Power \n[ - [OFF] - ]", 2)
 	end 
 		inst:DoTaskInTime(0.5, function() inst.iscasting = false end)
