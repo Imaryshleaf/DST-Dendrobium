@@ -950,12 +950,12 @@ local function DoEffects(pet)
 	SpawnPrefab("statue_transition_2").Transform:SetPosition(x, y, z)
 end
 local function OnSpawnPetFn(inst, pet)
-	if pet:HasTag("Dendrobiumshadows") then
+	if pet:HasTag("dendrobiumshadows") then
 		pet:DoTaskInTime(0, DoEffects)
 	end
 end
 local function OnDespawnPetFn(inst, pet)
-	if pet:HasTag("Dendrobiumshadows") then
+	if pet:HasTag("dendrobiumshadows") then
 		DoEffects(pet)
 		pet:Remove()
 	end

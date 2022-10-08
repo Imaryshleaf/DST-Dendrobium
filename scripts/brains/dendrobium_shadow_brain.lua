@@ -29,6 +29,9 @@ local STOP_KITING_DIST = 4
 
 local AVOID_EXPLOSIVE_DIST = 5
 
+local AVOID_MONSTER_DIST = 3
+local AVOID_MONSTER_STOP_DIST = 6
+
 local DIG_TAGS = { "stump", "grave", "farm_debris" }
 local TOWORK_CANT_TAGS = { "fire", "smolder", "event_trigger", "INLIMBO", "NOCLICK", "carnivalgame_part" }
 
@@ -58,7 +61,7 @@ local function StartWorking(inst, data)
 local x,y,z = inst.Transform:GetWorldPosition()
 local ents = TheSim:FindEntities(x,y,z, SEE_WORK_DIST)
 	for k,v in pairs(ents) do
-		if (v:HasTag("tree") or v:HasTag("boulder") or v:HasTag("stump")) and not v:HasTag("statue") then
+		if (v:HasTag("tree") or v:HasTag("boulder") or v:HasTag("stump")) and not v.prefab == "statueglommer" then
 			return true
 		end
 	end
@@ -169,16 +172,19 @@ function EntsBrain:OnStart()
 			-- Worker
 			IfNode(function() 
 				return self.inst.prefab == "dendrobium_shadow_lumber" end, "Keep Chopping",
+				---RunAway(self.inst, "monster", AVOID_MONSTER_DIST, AVOID_MONSTER_STOP_DIST),
 				DoAction(self.inst, function() 
 					return FindObjectToWorkAction(self.inst, ACTIONS.CHOP) 
 			end)),
 			IfNode(function() 
 				return self.inst.prefab == "dendrobium_shadow_miner" end, "Keep Mining",
+				--RunAway(self.inst, "monster", AVOID_MONSTER_DIST, AVOID_MONSTER_STOP_DIST),
 				DoAction(self.inst, function() 
 					return FindObjectToWorkAction(self.inst, ACTIONS.MINE) 
 			end)),
 			IfNode(function() 
 				return self.inst.prefab == "dendrobium_shadow_digger" end, "Keep Digging",
+				--RunAway(self.inst, "monster", AVOID_MONSTER_DIST, AVOID_MONSTER_STOP_DIST),
 				DoAction(self.inst, function() 
 					return FindObjectToWorkAction(self.inst, ACTIONS.DIG, DIG_TAGS) 
 			end)),

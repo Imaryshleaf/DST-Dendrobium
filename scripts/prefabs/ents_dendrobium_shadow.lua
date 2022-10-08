@@ -18,11 +18,13 @@ local prefabs = { }
 local ATTACK_RANGE = 1
 local HIT_RANGE = 2
 local CRITICAL_HIT_CHANCE = 0.2
-local SHADOW_DENDROBIUM_RUNSPEED = 6
-local SHADOW_DENDROBIUM_WALKSPEED = 4
+local SHADOW_DENDROBIUM_RUNSPEED = 8
+local SHADOW_DENDROBIUM_WALKSPEED = 6
 local NEAR_LEADER_DISTANCE = 10
-local TARGET_MUST_TAGS = { "_combat" }
-local TARGET_CANT_TAGS = { "INLIMBO", "companion", "notaunt", "playerghost", "FX" }
+local SHARE_TARGET_DIST = NEAR_LEADER_DISTANCE
+local RETARGET_MUST_TAGS = { "_combat" }
+local RETARGET_CANT_TAGS = { "INLIMBO", "companion", "notaunt", "playerghost" }
+local RETARGET_ONEOF_TAGS = { "locomotor", "epic" }
 
 local items = {
 	AXE = "swap_axe",
@@ -57,11 +59,13 @@ local function RetargetFn(inst)
 		function(guy)
 			return guy ~= inst
 				and ValidTarget(guy)
-				and (guy.components.combat:TargetIs(leader) or guy.components.combat:TargetIs(inst))
+				and (guy.components.combat:TargetIs(leader) 
+				  or guy.components.combat:TargetIs(inst)
+				  or guy:HasTag("shadowcreature"))
 				and inst.components.combat:CanTarget(guy)
             end,
-		TARGET_MUST_TAGS,
-		TARGET_CANT_TAGS
+		RETARGET_MUST_TAGS,
+		RETARGET_CANT_TAGS
 	)
 end
 
@@ -82,6 +86,12 @@ local function OnAttacked(inst, data)
 			target.components.petleash:DespawnPet(inst)
         elseif target.components.combat ~= nil then
 			inst.components.combat:SetTarget(target)
+			-- inst.components.combat:ShareTarget(target, SHARE_TARGET_DIST,
+				-- function(dude)
+					-- return not (dude.components.health ~= nil and dude.components.health:IsDead())
+						-- and (dude:HasTag("dendrobiumshadows") or dude:HasTag("friendlyshadows"))
+						-- and target ~= (dude.components.follower ~= nil and dude.components.follower.leader or nil)
+				-- end, 5)
         end
     end
 end
@@ -89,7 +99,7 @@ end
 local function OnHit(inst, data)
 	local other =  data.target
 	local fx = SpawnPrefab("statue_transition_2")
-	if ValidTarget(target) then
+	if ValidTarget(other) then
 		fx.Transform:SetPosition(other:GetPosition():Get())
 	end
 end
@@ -144,7 +154,7 @@ local inst = CreateEntity()
 
 	MakeGhostPhysics(inst, 1, .5)
 
-	inst.Transform:SetScale(.9, .9, .9)
+	inst.Transform:SetScale(.8, .8, .8)
 	inst.Transform:SetFourFaced(inst)
 
 	inst.MiniMapEntity:SetIcon("dendrobium.tex")
@@ -165,7 +175,8 @@ local inst = CreateEntity()
 	inst:AddTag("NOBLOCK")
 	
 	-- Custom
-	inst:AddTag("Dendrobiumshadows")
+	inst:AddTag("friendlyshadows")
+	inst:AddTag("dendrobiumshadows")
 
     inst:AddTag("flying")
 	if inst.DLC2_fly then
