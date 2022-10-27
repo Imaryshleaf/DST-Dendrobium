@@ -3,7 +3,7 @@ A Don't Starve Together character mod
 
 "" --- "" --- "" --- "" --- "" --- "" --- ""
 
-Jp:
+Jp:\n
 ゲーム mod フォルダ内のファイルを抽出します:
 "C:\Program Files (x86)\Steam\steamapps\common\Don't Starve Together\mods"
 
