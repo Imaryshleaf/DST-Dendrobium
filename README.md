@@ -6,7 +6,7 @@ Jp:
 "C:\Program Files (x86)\Steam\steamapps\common\Don't Starve Together\mods"
 
 PC に GIT がインストールされている場合:  
-git clone https://github.com/Imaryshleaf/DST-Dendrobium
+**git clone https://github.com/Imaryshleaf/DST-Dendrobium**
 
 
 Cn:  
@@ -14,14 +14,14 @@ Cn:
 "C:\Program Files (x86)\Steam\steamapps\common\Don't Starve Together\mods"
 
 如果您的 PC 上安装了 GIT：  
-git clone https://github.com/Imaryshleaf/DST-Dendrobium
+**git clone https://github.com/Imaryshleaf/DST-Dendrobium**
 
 Kr:  
 게임 모드 폴더에 있는 파일의 압축을 풉니다:  
 "C:\Program Files (x86)\Steam\steamapps\common\Don't Starve Together\mods"
 
 GIT가 PC에 설치된 경우:  
-git clone https://github.com/Imaryshleaf/DST-Dendrobium
+**git clone https://github.com/Imaryshleaf/DST-Dendrobium**
 
 
 Discord URL:  
