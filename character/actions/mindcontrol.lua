@@ -1,13 +1,12 @@
 local ACTIONS = GLOBAL.ACTIONS
--- List of structures that can be re-lit
-local targetstructures = { 
+
+local litablefirepit = { 
 	"firepit",
 	"coldfirepit",
 	"nightlight"
 }
 
--- List of entities that can be controlled
-local targetsmobs = {  
+local controllablemobs = {  
     "character", 		"pigman", 			"bunnyman", 		"frog", 
     "monkey", 			"bat", 				"minotaur", 		"bishop", 
     "krampus", 			"mossling", 		"tallbird", 		"deerclopse", 
@@ -20,7 +19,8 @@ local targetsmobs = {
     "walrus", 			"merm", 			"knight", 			"rook", 
     "pigguard", 		"leif_sparse", 
 }
-----------------------------------------------------------------------------------------------
+
+--
 local function OnStartControlling(inst, doer)
     inst.doer = doer.components.sanity ~= nil and doer or nil
     if inst.doer ~= nil then
@@ -32,20 +32,21 @@ local function OnStopControlling(inst, doer)
         inst.doer.components.sanity.externalmodifiers:RemoveModifier(inst)
     end
 end
-for k,v in pairs(targetsmobs) do
+for k,v in pairs(controllablemobs) do
 	AddPrefabPostInit(v,function(inst)
 		if GLOBAL.TheWorld.ismastersim then
-            inst:AddTag("MindControlled")
+            inst:AddTag("mydummypuppet")
 			inst:AddComponent("puppeteer")
 			inst.components.puppeteer:SetControllingFn(OnStartControlling, OnStopControlling)
 		end
 	end)
 end
-----------------------------------------------------------------------------------------------
+
+--
 local function OnStartSwitching(inst, doer)
     inst.doer = doer.components.sanity ~= nil and doer or nil
     if inst.doer ~= nil then
-        inst.doer.components.sanity:DoDelta(-4)
+        inst.doer.components.sanity:DoDelta(-5)
 		inst.doer.components.sanity.externalmodifiers:SetModifier(inst, -1)
     end
 end
@@ -54,25 +55,26 @@ local function OnStopSwitching(inst, doer)
 		inst.doer.components.sanity.externalmodifiers:RemoveModifier(inst)
     end
 end
-for k,v in pairs(targetstructures) do
+for k,v in pairs(litablefirepit) do
 	AddPrefabPostInit(v,function(inst)
 		if GLOBAL.TheWorld.ismastersim then
-			inst:AddTag("FireStructures")
+			inst:AddTag("mycampfire")
 			inst:AddComponent("puppeteer")
 			inst.components.puppeteer:SetSwitchingFn(OnStartSwitching, OnStopSwitching)
 		end
 	end)
 end
-----------------------------------------------------------------------------------------------
+
 -- Action (Just start)
-local IgniteAction = GLOBAL.Action({ distance = 36 }) -- Distance
+local IgniteAction = GLOBAL.Action({ distance = 36 })
 IgniteAction.str = "Switch"
 IgniteAction.id = "IgniteAction"
 AddAction(IgniteAction)
 IgniteAction.fn = function(act)
-	if act.doer ~= nil and 
-		act.target ~= nil and 
-            act.doer:HasTag("Firemastery") and act.target:HasTag("FireStructures") then
+	if act.doer ~= nil 
+		and act.target ~= nil 
+		and act.doer:HasTag("firepowersource") 
+		and act.target:HasTag("mycampfire") then
 		return act.target.components.puppeteer:StartSwitching(act.doer)
 	end
 end
@@ -83,11 +85,11 @@ StartMindControl.str = "Start Manipulate"
 StartMindControl.id = "StartMindControl"
 AddAction(StartMindControl)
 StartMindControl.fn = function(act)
-	if act.doer ~= nil and 
-		act.target ~= nil and 
-			act.doer:HasTag("Mastermind") and 
-				act.target.components.puppeteer and 
-					act.target:HasTag("MindControlled") then
+	if act.doer ~= nil 
+		and act.target ~= nil 
+		and act.doer:HasTag("mindpowersource") 
+		and act.target.components.puppeteer 
+		and act.target:HasTag("mydummypuppet") then
 		return act.target.components.puppeteer:StartControlling(act.doer)
 	end
 end
@@ -98,28 +100,28 @@ StopMindControl.str = "Stop Manipulate"
 StopMindControl.id = "StopMindControl"
 AddAction(StopMindControl)
 StopMindControl.fn = function(act)
-	if act.doer ~= nil and 
-		act.target ~= nil and 
-			act.doer:HasTag("Mastermind") and 
-				act.target.components.puppeteer and 
-					act.target:HasTag("MindControlled") then
+	if act.doer ~= nil 
+		and act.target ~= nil 
+		and act.doer:HasTag("mindpowersource") 
+		and act.target.components.puppeteer 
+		and act.target:HasTag("mydummypuppet") then
 		return act.target.components.puppeteer:StopControlling(act.doer)
 	end
 end
 
 AddComponentAction("SCENE", "puppeteer", function(inst, doer, actions, right)
     if right then
-        if inst:HasTag("MindControlled") and not doer.sg:HasStateTag("controlling") and doer:HasTag("Mastermind") then
+        if doer:HasTag("mindpowersource") and inst:HasTag("mydummypuppet") and not doer.sg:HasStateTag("controlling") then
             table.insert(actions, GLOBAL.ACTIONS.StartMindControl)
         end
     end
     if right then
-        if inst:HasTag("MindControlled") and doer.sg:HasStateTag("controlling") and doer:HasTag("Mastermind") then
+        if doer:HasTag("mindpowersource") and inst:HasTag("mydummypuppet") and doer.sg:HasStateTag("controlling") then
             table.insert(actions, GLOBAL.ACTIONS.StopMindControl)
         end
     end
     if right then
-        if inst:HasTag("FireStructures") and not doer.sg:HasStateTag("ignite_start") and doer:HasTag("Firemastery") then
+        if doer:HasTag("firepowersource") and inst:HasTag("mycampfire") and not doer.sg:HasStateTag("ignite_start") then
             table.insert(actions, GLOBAL.ACTIONS.IgniteAction)
         end
     end

@@ -1,238 +1,33 @@
 local MakePlayerCharacter = require "prefabs/player_common"
 local assets = {
     Asset("SCRIPT", "scripts/prefabs/player_common.lua"),
-	-- Transform
-	Asset( "IMAGE", "character/skills/buttons/transform.tex" ),
-    Asset( "ATLAS", "character/skills/buttons/transform.xml" ),
-	Asset( "IMAGE", "character/skills/buttons/transform_cd.tex" ),
-    Asset( "ATLAS", "character/skills/buttons/transform_cd.xml" ),
-	-- Sneak attack
-	Asset( "IMAGE", "character/skills/buttons/sneakattack.tex" ),
-    Asset( "ATLAS", "character/skills/buttons/sneakattack.xml" ),
-	Asset( "IMAGE", "character/skills/buttons/sneakattack_cd.tex" ),
-    Asset( "ATLAS", "character/skills/buttons/sneakattack_cd.xml" ),
-	-- Sleep
-	Asset( "IMAGE", "character/skills/buttons/sleep.tex" ),
-    Asset( "ATLAS", "character/skills/buttons/sleep.xml" ),
-	Asset( "IMAGE", "character/skills/buttons/sleep_cd.tex" ),
-    Asset( "ATLAS", "character/skills/buttons/sleep_cd.xml" ),
+	--- Image Buttons
+	Asset( "IMAGE", "character/skills/buttons/bloom_domain.tex" ),
+    Asset( "ATLAS", "character/skills/buttons/bloom_domain.xml" ),
+	Asset( "IMAGE", "character/skills/buttons/healing_domain.tex" ),
+    Asset( "ATLAS", "character/skills/buttons/healing_domain.xml" ),
+	Asset( "IMAGE", "character/skills/buttons/shadow_guardian.tex" ),
+    Asset( "ATLAS", "character/skills/buttons/shadow_guardian.xml" ),
+	Asset( "IMAGE", "character/skills/buttons/shadow_worker.tex" ),
+    Asset( "ATLAS", "character/skills/buttons/shadow_worker.xml" ),
+	Asset( "IMAGE", "character/skills/buttons/sneak_attack.tex" ),
+    Asset( "ATLAS", "character/skills/buttons/sneak_attack.xml" ),
+	Asset( "IMAGE", "character/skills/buttons/treasure_tracker.tex" ),
+    Asset( "ATLAS", "character/skills/buttons/treasure_tracker.xml" ),
 }
 
--- Character stats in select screen
 TUNING.DENDROBIUM_HEALTH = 100
 TUNING.DENDROBIUM_HUNGER = 300
 TUNING.DENDROBIUM_SANITY = 100
-TUNING.GAMEMODE_STARTING_ITEMS.DEFAULT.DENDROBIUM = { "spear" }
+TUNING.GAMEMODE_STARTING_ITEMS.DEFAULT.DENDROBIUM = { "lantern" }
 
--- Custom Starting Inventory
-local start_inv = {}
+local start_inv = { "" }
 for k, v in pairs(TUNING.GAMEMODE_STARTING_ITEMS) do
     start_inv[string.lower(k)] = v.DENDROBIUM
 end
 local prefabs = FlattenTree(start_inv, true)
 
-
--- Widget status display ---------------------------------------------------------------------------------------------------------------
-local function ClientSet_Energy_Min(inst)
-	if not TheWorld.ismastersim and inst.energybadge ~= nil then
-		if inst._clientenergy_min ~= inst.widget_energy_min:value() then
-			local oldperc = inst._clientenergy_min
-		if oldperc == nil then 
-			oldperc = 0 
-		end	
-		inst._clientenergy_min = inst.widget_energy_min:value()	
-		inst.energybadge:SetPercent(inst._clientenergy_min, inst._clientenergy_max)
-		local up = (inst:HasTag("Dendrobium"))
-		local anim = up and "arrow_loop_increase" or "neutral"
-		if inst.arrowdir ~= anim then
-			inst.arrowdir = anim
-			inst.energyarrow:GetAnimState():PlayAnimation(anim, true)
-			end	
-		end	
-	end	
-end
-local function ClientSet_Energy_Max(inst)
-	if not TheWorld.ismastersim and inst.energybadge ~= nil then
-		if inst._clientenergy_max ~= inst.widget_energy_max:value() then
-			inst._clientenergy_max = inst.widget_energy_max:value()
-		end	
-	end	
-end
--- Status badge
-local function ClientSet_Shield_Min(inst)
-	if not TheWorld.ismastersim and inst.shieldbadge ~= nil then
-		if inst._clientshield_min ~= inst.widget_shield_min:value() then
-			local oldperc = inst._clientshield_min
-		if oldperc == nil then 
-			oldperc = 0 
-		end	
-		inst._clientshield_min = inst.widget_shield_min:value()	
-		inst.shieldbadge:SetPercent(inst._clientshield_min, inst._clientshield_max)
-		local up = (inst:HasTag("Dendrobium"))
-		local anim = up and "arrow_loop_increase" or "neutral"
-		if inst.arrowdir ~= anim then
-			inst.arrowdir = anim
-			inst.shieldarrow:GetAnimState():PlayAnimation(anim, true)
-			end	
-		end	
-	end	
-end
-local function ClientSet_Shield_Max(inst)
-	if not TheWorld.ismastersim and inst.shieldbadge ~= nil then
-		if inst._clientshield_max ~= inst.widget_shield_max:value() then
-			inst._clientshield_max = inst.widget_shield_max:value()
-		end	
-	end	
-end
--- Status badge
-local function ClientSet_Magic_Min(inst)
-	if not TheWorld.ismastersim and inst.magicbadge ~= nil then
-		if inst._clientmagic_min ~= inst.widget_magic_min:value() then
-			local oldperc = inst._clientmagic_min
-		if oldperc == nil then 
-			oldperc = 0 
-		end	
-		inst._clientmagic_min = inst.widget_magic_min:value()	
-		inst.magicbadge:SetPercent(inst._clientmagic_min, inst._clientmagic_max)
-		local up = (inst:HasTag("Dendrobium"))
-		local anim = up and "arrow_loop_increase" or "neutral"
-		if inst.arrowdir ~= anim then
-			inst.arrowdir = anim
-			inst.magicarrow:GetAnimState():PlayAnimation(anim, true)
-			end	
-		end	
-	end	
-end
-local function ClientSet_Magic_Max(inst)
-	if not TheWorld.ismastersim and inst.magicbadge ~= nil then
-		if inst._clientmagic_max ~= inst.widget_magic_max:value() then
-			inst._clientmagic_max = inst.widget_magic_max:value()
-		end	
-	end	
-end
--- Status badge
-local function ClientSet_Treasure_Min(inst)
-	if not TheWorld.ismastersim and inst.treasurebadge ~= nil then
-		if inst._clienttreasure_min ~= inst.widget_treasure_min:value() then
-			local oldperc = inst._clienttreasure_min
-		if oldperc == nil then 
-			oldperc = 0 
-		end	
-		inst._clienttreasure_min = inst.widget_treasure_min:value()	
-		inst.treasurebadge:SetPercent(inst._clienttreasure_min, inst._clienttreasure_max)
-		local up = (inst:HasTag("Dendrobium"))
-		local anim = up and "arrow_loop_increase" or "neutral"
-		if inst.arrowdir ~= anim then
-			inst.arrowdir = anim
-			inst.treasurearrow:GetAnimState():PlayAnimation(anim, true)
-			end	
-		end	
-	end	
-end
-local function ClientSet_Treasure_Max(inst)
-	if not TheWorld.ismastersim and inst.treasurebadge ~= nil then
-		if inst._clienttreasure_max ~= inst.widget_treasure_max:value() then
-			inst._clienttreasure_max = inst.widget_treasure_max:value()
-		end	
-	end	
-end
--- Status badge
-local function ClientSet_Bloom_Min(inst)
-	if not TheWorld.ismastersim and inst.bloombadge ~= nil then
-		if inst._clientbloom_min ~= inst.widget_bloom_min:value() then
-			local oldperc = inst._clientbloom_min
-		if oldperc == nil then 
-			oldperc = 0 
-		end	
-		inst._clientbloom_min = inst.widget_bloom_min:value()	
-		inst.bloombadge:SetPercent(inst._clientbloom_min, inst._clientbloom_max)
-		local up = (inst:HasTag("Dendrobium"))
-		local anim = up and "arrow_loop_increase" or "neutral"
-		if inst.arrowdir ~= anim then
-			inst.arrowdir = anim
-			inst.bloomarrow:GetAnimState():PlayAnimation(anim, true)
-			end	
-		end	
-	end	
-end
-local function ClientSet_Bloom_Max(inst)
-	if not TheWorld.ismastersim and inst.bloombadge ~= nil then
-		if inst._clientbloom_max ~= inst.widget_bloom_max:value() then
-			inst._clientbloom_max = inst.widget_bloom_max:value()
-		end	
-	end	
-end
--- Status badge
-local function ClientSet_Quantum_Min(inst)
-	if not TheWorld.ismastersim and inst.quantumbadge ~= nil then
-		if inst._clientquantum_min ~= inst.widget_quantum_min:value() then
-			local oldperc = inst._clientquantum_min
-		if oldperc == nil then 
-			oldperc = 0 
-		end	
-		inst._clientquantum_min = inst.widget_quantum_min:value()	
-		inst.quantumbadge:SetPercent(inst._clientquantum_min, inst._clientquantum_max)
-		local up = (inst:HasTag("Dendrobium"))
-		local anim = up and "arrow_loop_increase" or "neutral"
-		if inst.arrowdir ~= anim then
-			inst.arrowdir = anim
-			inst.quantumarrow:GetAnimState():PlayAnimation(anim, true)
-			end	
-		end	
-	end	
-end
-local function ClientSet_Quantum_Max(inst)
-	if not TheWorld.ismastersim and inst.quantumbadge ~= nil then
-		if inst._clientquantum_max ~= inst.widget_quantum_max:value() then
-			inst._clientquantum_max = inst.widget_quantum_max:value()
-		end	
-	end	
-end
-----------------------------------------------------------------------------------------------------------------------------------------
--- Fullmoon
-local function SetWere(inst, data)
-	inst.components.talker:Say("Show time!", 2)
-
-	inst:AddTag("valkyrie")
-	inst:AddTag("spiderwhisperer")
-	
-	if inst.components.eater then
-		inst.components.eater.strongstomach = true
-	end
-	
-	if inst.components.locomotor then
-		inst.components.locomotor:SetTriggersCreep(false)
-	end
-
-	if inst.sg ~= nil then
-		inst.sg:GoToState("powerup")
-	end
-end
-local function SetNormal(inst, data)
-	inst.components.talker:Say("Lunar show ended!", 2)
-
-	inst:RemoveTag("valkyrie")
-	inst:RemoveTag("spiderwhisperer")
-	
-	if inst.components.eater then
-		inst.components.eater.strongstomach = false
-	end
-	
-	if inst.components.locomotor then
-		inst.components.locomotor:SetTriggersCreep(true)
-	end
-
-	if inst.sg ~= nil then
-		inst.sg:GoToState("powerdown")
-	end
-end
-
--- List used prefab here so, I can update ----------------------------------------------------------------------------------------------
-local prefab_SOUL_ORB_SPAWN = "soul_orb_spawn"
-local prefab_WATHGRITHR_SPIRIT = "wathgrithr_spirit"
-
-----------------------------------------------------------------------------------------------------------------------------------------
--- Apply Exp gain
+-- Apply Exp from kill
 local function ApplyExpLevel(inst, data)
 	local maxp=math.floor(inst.components.explevel.max_levelxp-0)
 	local curxp=math.floor(inst.components.explevel.min_levelxp-0)
@@ -656,24 +451,36 @@ local function ApplyExpLevel(inst, data)
 	inst.components.orchidacite:SetPercent("shield", shield_percent)
 end
 
--- Exp gain on killed others
+-- Exp on killed others
 local smallScale = 0.5;
 local medScale = 0.7; 
 local largeScale = 1.1;
 
-local function IsValidVictim(victim)
-    return victim ~= nil and not (victim:HasTag("veggie") or victim:HasTag("structure") or victim:HasTag("wall") or victim:HasTag("balloon") or victim:HasTag("soulless") or victim:HasTag("chess") or victim:HasTag("shadow") or victim:HasTag("shadowcreature") or victim:HasTag("shadowminion") or victim:HasTag("shadowchesspiece") or victim:HasTag("groundspike") or victim:HasTag("smashable")) and victim.components.combat ~= nil and victim.components.health ~= nil 
-end
 local function wathgrithr_spiritfx(inst, x, y, z, scale)
-    local fx = SpawnPrefab(prefab_WATHGRITHR_SPIRIT)
+    local fx = SpawnPrefab("wathgrithr_spirit")
 	fx.Transform:SetPosition(x, y, z)
 	fx.Transform:SetScale(scale, scale, scale)
 end
 
 local function OnKillOther(inst, data)
 	local victim = data.victim
-	if IsValidVictim(victim) then
-		---- Hostile
+	if victim ~= nil 
+		and not (victim:HasTag("veggie") 
+			or victim:HasTag("structure") 
+			or victim:HasTag("wall") 
+			or victim:HasTag("balloon") 
+			or victim:HasTag("soulless") 
+			or victim:HasTag("chess") 
+			or victim:HasTag("shadow") 
+			or victim:HasTag("shadowcreature") 
+			or victim:HasTag("shadowminion") 
+			or victim:HasTag("shadowchesspiece") 
+			or victim:HasTag("groundspike") 
+			or victim:HasTag("smashable")) 
+		and victim.components.combat ~= nil 
+		and victim.components.health ~= nil  then
+
+		-- Hostile --
 		if victim.prefab == "minotaur" then 
 			inst.components.explevel:AddExp(500)
 			ApplyExpLevel(inst)
@@ -827,7 +634,7 @@ local function OnKillOther(inst, data)
 		elseif victim.prefab == "toadstool_dark" then
 			inst.components.explevel:AddExp(2000)
 			ApplyExpLevel(inst)
-		---- Neutral 
+		-- Neutral -- 
 		elseif victim.prefab == "buzzard" then
 			inst.components.explevel:AddExp(25)
 			ApplyExpLevel(inst)
@@ -883,50 +690,17 @@ local function OnKillOther(inst, data)
 			inst.components.explevel:AddExp(500)
 			ApplyExpLevel(inst)
 	end
-	-- Valid Victim: Spawn Fx & Soul
+	-- Soul
 		local time = victim.components.health.destroytime or 2
 		local x, y, z = victim.Transform:GetWorldPosition()
 		local scale = (victim:HasTag("smallcreature") and smallScale)
 				or (victim:HasTag("largecreature") and largeScale) or medScale
 				inst:DoTaskInTime(time, wathgrithr_spiritfx, x, y, z, scale)
-		SpawnPrefab(prefab_SOUL_ORB_SPAWN).Transform:SetPosition(victim:GetPosition():Get())
+		SpawnPrefab("soul_orb_spawn").Transform:SetPosition(victim:GetPosition():Get())
 	end
 end
 
-
--- Set speed when not a ghost (optional)
-local function OnBecameHumanFn(inst)
-	inst.components.locomotor.walkspeed = TUNING.WILSON_WALK_SPEED*1.25    
-	inst.components.locomotor.runspeed = TUNING.WILSON_RUN_SPEED*1.25 
-	-- inst.components.locomotor:SetExternalSpeedMultiplier(inst, "dendrobium_speed_mod", 1)
-end
-
--- Remove speed modifier when becoming a ghost
-local function OnBecameGhostFn(inst)
-   -- inst.components.locomotor:RemoveExternalSpeedMultiplier(inst, "dendrobium_speed_mod")
-end
-
--- Eater Modification
-local function OnEatFoodsFn(inst, food)
-	if food and food.components.edible and food.components.edible.foodtype == "MEAT" then
-		if not food.prefab == "monstermeat" then
-			--- Code
-		end
-	elseif food.components.edible and food.components.edible.foodtype == "VEGGIE" then
-		if not food.prefab == "petals_evil" then
-			--- Code
-		end
-	end 
-end
-
--- Sanity aura
-local function CalcSanityAuraFn(inst, observer)
-    return (inst:HasTag("FullMoonMode") and -TUNING.SANITYAURA_LARGE)
-        or (inst.components.werebeast ~= nil and inst.components.werebeast:IsInWereState() and -TUNING.SANITYAURA_LARGE)
-        or 0
-end
-
--- Sanity Regen
+-- Sanity regen
 local function SanityRegenfn(inst)
     local delta = 0
     local max_rad = 6
@@ -944,14 +718,15 @@ local function SanityRegenfn(inst)
     return delta
 end
 
--- Pet (Followers)
+-- Pets
 local function DoEffects(pet)
 	local x, y, z = pet.Transform:GetWorldPosition()
 	SpawnPrefab("statue_transition_2").Transform:SetPosition(x, y, z)
 end
 local function OnSpawnPetFn(inst, pet)
 	if pet:HasTag("dendrobiumshadows") then
-		pet:DoTaskInTime(0, DoEffects)
+		-- pet:DoTaskInTime(0, DoEffects)
+		pet.sg:GoToState("spawnjumpout")
 	end
 end
 local function OnDespawnPetFn(inst, pet)
@@ -959,6 +734,16 @@ local function OnDespawnPetFn(inst, pet)
 		DoEffects(pet)
 		pet:Remove()
 	end
+end
+
+-- Set/Remove speed when becoming/not a ghost (optional)
+local function OnBecameHumanFn(inst)
+	inst.components.locomotor.walkspeed = TUNING.WILSON_WALK_SPEED*1.25    
+	inst.components.locomotor.runspeed = TUNING.WILSON_RUN_SPEED*1.25 
+end
+local function OnBecameGhostFn(inst)
+	inst.components.locomotor.walkspeed = TUNING.WILSON_WALK_SPEED*1.15    
+	inst.components.locomotor.runspeed = TUNING.WILSON_RUN_SPEED*1.15 
 end
 
 -- Loading or Spawning the Character
@@ -972,86 +757,159 @@ local function OnLoadFn(inst)
     end
 end
 
---Respawn
-local function OnRespawnFn(inst, data)
-	if not inst.components.health:IsDead() or inst.sg:HasStateTag("nomorph") or inst:HasTag("playerghost") then
-		--- Code
-	end
-end
-
--- Death
-local function OnDeathFn(inst, data)
-	--- Code
-end
-
 -- This initializes for both the server and client. Tags can be added here.
 local common_postinit = function(inst) 
 	-- Minimap icon
 	inst.MiniMapEntity:SetIcon("dendrobium.tex")
 
-	-- Book Builder
-	inst:AddTag("bookbuilder")
-
-	-- Special Tags
-	inst:AddTag("Dendrobium")
-	inst:AddTag("Dodger")
-	inst:AddTag("Leaper")
-	inst:AddTag("Mastermind")
-	inst:AddTag("Firemastery")
-	inst:AddTag("soulorbcollector")
+	-- Status badge: quantum
+	inst.widget_quantum_max = net_float(inst.GUID, "widget_quantum_max", "clientsetquantum_max")
+	inst.widget_quantum_min = net_float(inst.GUID, "widget_quantum_min", "clientsetquantum_min")
+	if not TheWorld.ismastersim then
+		inst:ListenForEvent("clientsetquantum_min", function(inst)
+			if not TheWorld.ismastersim and inst.quantumbadge ~= nil then
+				if inst._clientquantum_min ~= inst.widget_quantum_min:value() then
+					local oldperc = inst._clientquantum_min
+				if oldperc == nil then 
+					oldperc = 0 
+				end	
+				inst._clientquantum_min = inst.widget_quantum_min:value()	
+				inst.quantumbadge:SetPercent(inst._clientquantum_min, inst._clientquantum_max)
+				local up = (inst:HasTag("Dendrobium"))
+				local anim = up and "arrow_loop_increase" or "neutral"
+				if inst.arrowdir ~= anim then
+					inst.arrowdir = anim
+					inst.quantumarrow:GetAnimState():PlayAnimation(anim, true)
+					end	
+				end	
+			end	
+		end)
+		inst:ListenForEvent("clientsetquantum_max", function(inst)
+			if not TheWorld.ismastersim and inst.quantumbadge ~= nil then
+				if inst._clientquantum_max ~= inst.widget_quantum_max:value() then
+					inst._clientquantum_max = inst.widget_quantum_max:value()
+				end	
+			end	
+		end)
+	end
 
 	-- Status badge: energy
 	inst.widget_energy_max = net_float(inst.GUID, "widget_energy_max", "clientsetenergy_max")
 	inst.widget_energy_min = net_float(inst.GUID, "widget_energy_min", "clientsetenergy_min")
 	if not TheWorld.ismastersim then
-		inst:ListenForEvent("clientsetenergy_min", ClientSet_Energy_Min)
-		inst:ListenForEvent("clientsetenergy_max", ClientSet_Energy_Max)
+		inst:ListenForEvent("clientsetenergy_min", function(inst)
+			if not TheWorld.ismastersim and inst.energybadge ~= nil then
+				if inst._clientenergy_min ~= inst.widget_energy_min:value() then
+					local oldperc = inst._clientenergy_min
+				if oldperc == nil then 
+					oldperc = 0 
+				end	
+				inst._clientenergy_min = inst.widget_energy_min:value()	
+				inst.energybadge:SetPercent(inst._clientenergy_min, inst._clientenergy_max)
+				local up = (inst:HasTag("Dendrobium"))
+				local anim = up and "arrow_loop_increase" or "neutral"
+				if inst.arrowdir ~= anim then
+					inst.arrowdir = anim
+					inst.energyarrow:GetAnimState():PlayAnimation(anim, true)
+					end	
+				end	
+			end	
+		end)
+		inst:ListenForEvent("clientsetenergy_max", function(inst)
+			if not TheWorld.ismastersim and inst.energybadge ~= nil then
+				if inst._clientenergy_max ~= inst.widget_energy_max:value() then
+					inst._clientenergy_max = inst.widget_energy_max:value()
+				end	
+			end	
+		end)
 	end
-	--- Status badge: shield
-	inst.widget_shield_max = net_float(inst.GUID, "widget_shield_max", "clientsetshield_max")
-	inst.widget_shield_min = net_float(inst.GUID, "widget_shield_min", "clientsetshield_min")
-	if not TheWorld.ismastersim then
-		inst:ListenForEvent("clientsetshield_min", ClientSet_Shield_Min)
-		inst:ListenForEvent("clientsetshield_max", ClientSet_Shield_Max)
-	end
+
 	-- Status badge: magic
 	inst.widget_magic_max = net_float(inst.GUID, "widget_magic_max", "clientsetmagic_max")
 	inst.widget_magic_min = net_float(inst.GUID, "widget_magic_min", "clientsetmagic_min")
 	if not TheWorld.ismastersim then
-		inst:ListenForEvent("clientsetmagic_min", ClientSet_Magic_Min)
-		inst:ListenForEvent("clientsetmagic_max", ClientSet_Magic_Max)
+		inst:ListenForEvent("clientsetmagic_min", function(inst)
+			if not TheWorld.ismastersim and inst.magicbadge ~= nil then
+				if inst._clientmagic_min ~= inst.widget_magic_min:value() then
+					local oldperc = inst._clientmagic_min
+				if oldperc == nil then 
+					oldperc = 0 
+				end	
+				inst._clientmagic_min = inst.widget_magic_min:value()	
+				inst.magicbadge:SetPercent(inst._clientmagic_min, inst._clientmagic_max)
+				local up = (inst:HasTag("Dendrobium"))
+				local anim = up and "arrow_loop_increase" or "neutral"
+				if inst.arrowdir ~= anim then
+					inst.arrowdir = anim
+					inst.magicarrow:GetAnimState():PlayAnimation(anim, true)
+					end	
+				end	
+			end	
+		end)
+		inst:ListenForEvent("clientsetmagic_max", function(inst)
+			if not TheWorld.ismastersim and inst.magicbadge ~= nil then
+				if inst._clientmagic_max ~= inst.widget_magic_max:value() then
+					inst._clientmagic_max = inst.widget_magic_max:value()
+				end	
+			end	
+		end)
 	end
-	--- Status badge: treasure
-	inst.widget_treasure_max = net_float(inst.GUID, "widget_treasure_max", "clientsettreasure_max")
-	inst.widget_treasure_min = net_float(inst.GUID, "widget_treasure_min", "clientsettreasure_min")
+	
+	--- Status badge: shield
+	inst.widget_shield_max = net_float(inst.GUID, "widget_shield_max", "clientsetshield_max")
+	inst.widget_shield_min = net_float(inst.GUID, "widget_shield_min", "clientsetshield_min")
 	if not TheWorld.ismastersim then
-		inst:ListenForEvent("clientsettreasure_min", ClientSet_Treasure_Min)
-		inst:ListenForEvent("clientsettreasure_max", ClientSet_Treasure_Max)
+		inst:ListenForEvent("clientsetshield_min", function(inst)
+			if not TheWorld.ismastersim and inst.shieldbadge ~= nil then
+				if inst._clientshield_min ~= inst.widget_shield_min:value() then
+					local oldperc = inst._clientshield_min
+				if oldperc == nil then 
+					oldperc = 0 
+				end	
+				inst._clientshield_min = inst.widget_shield_min:value()	
+				inst.shieldbadge:SetPercent(inst._clientshield_min, inst._clientshield_max)
+				local up = (inst:HasTag("Dendrobium"))
+				local anim = up and "arrow_loop_increase" or "neutral"
+				if inst.arrowdir ~= anim then
+					inst.arrowdir = anim
+					inst.shieldarrow:GetAnimState():PlayAnimation(anim, true)
+					end	
+				end	
+			end	
+		end)
+		inst:ListenForEvent("clientsetshield_max", function(inst)
+			if not TheWorld.ismastersim and inst.shieldbadge ~= nil then
+				if inst._clientshield_max ~= inst.widget_shield_max:value() then
+					inst._clientshield_max = inst.widget_shield_max:value()
+				end	
+			end	
+		end)
 	end
-	--- Status badge: bloom
-	inst.widget_bloom_max = net_float(inst.GUID, "widget_bloom_max", "clientsetbloom_max")
-	inst.widget_bloom_min = net_float(inst.GUID, "widget_bloom_min", "clientsetbloom_min")
-	if not TheWorld.ismastersim then
-		inst:ListenForEvent("clientsetbloom_min", ClientSet_Bloom_Min)
-		inst:ListenForEvent("clientsetbloom_max", ClientSet_Bloom_Max)
-	end
-	-- Status badge: quantum
-	inst.widget_quantum_max = net_float(inst.GUID, "widget_quantum_max", "clientsetquantum_max")
-	inst.widget_quantum_min = net_float(inst.GUID, "widget_quantum_min", "clientsetquantum_min")
-	if not TheWorld.ismastersim then
-		inst:ListenForEvent("clientsetquantum_min", ClientSet_Quantum_Min)
-		inst:ListenForEvent("clientsetquantum_max", ClientSet_Quantum_Max)
-	end
+
+	-- Book Builder (Game)
+	inst:AddTag("bookbuilder")
+
+	-- Custom tags
+	inst:AddTag("Dendrobium")
+	inst:AddTag("soulleaper")
+	inst:AddTag("firepowersource")
+	inst:AddTag("mindpowersource")
+	inst:AddTag("soulorbcollector")
+
 	-- Buttons
-	inst.transform_cd = net_float(inst.GUID, "inst.transform_cd")
-	inst.sneakattack_cd = net_float(inst.GUID, "inst.sneakattack_cd")
-	inst.sleep_cd = net_float(inst.GUID, "inst.sleep_cd")
+	inst.bloomd_eventcd = net_float(inst.GUID, "inst.bloomd_eventcd")
+	inst.healingd_eventcd = net_float(inst.GUID, "inst.healingd_eventcd")
+	inst.shadowg_eventcd = net_float(inst.GUID, "inst.shadowg_eventcd")
+	inst.shadoww_eventcd = net_float(inst.GUID, "inst.shadoww_eventcd")
+	inst.sneaka_eventcd = net_float(inst.GUID, "inst.sneaka_eventcd")
+	inst.treasuret_eventcd = net_float(inst.GUID, "inst.treasuret_eventcd")
 
 	-- Character keyhandler
 	inst:AddComponent("keyhandler")
 	inst.components.keyhandler:Press(_G[TUNING.DENDROBIUM.KEY_1], "LevelInfo")
 	inst.components.keyhandler:Press(_G[TUNING.DENDROBIUM.KEY_2], "SpellSwitcher")
 	inst.components.keyhandler:Press(_G[TUNING.DENDROBIUM.KEY_3], "HitType")
+	
 end
 
 -- This initializes for the server only. Components are added here.
@@ -1064,96 +922,121 @@ local master_postinit = function(inst)
 	inst.components.talker.fontsize = 28
 	inst.components.talker.colour = Vector3(200/255, 175/255, 210/255, 1)
 	
-	-- Custom character temperature modification
+	-- Character size
+	inst.Transform:SetScale(1, 1, 1)
+	
+	-- Temperature modification
 	inst.components.temperature.inherentinsulation = 5
 	inst.components.temperature.inherentsummerinsulation = 5
 	
-	-- Health
+	-- Health modification
 	local percent = inst.components.health:GetPercent()
-	inst.components.health:SetMaxHealth(100)
+	inst.components.health:SetMaxHealth(TUNING.DENDROBIUM_HEALTH)
     inst.components.health:SetPercent(percent)
 
-	-- Hunger
+	-- Hunger modification
     local hunger_percent = inst.components.hunger:GetPercent()
-	inst.components.hunger:SetMax(300)
+	inst.components.hunger:SetMax(TUNING.DENDROBIUM_HUNGER)
     inst.components.hunger:SetPercent(hunger_percent)
 	inst.components.hunger:SetKillRate(1.25)
     inst.components.hunger:SetRate(TUNING.WILSON_HUNGER_RATE * TUNING.WARLY_HUNGER_RATE_MODIFIER)
 
-	-- Sanity
+	-- Sanity modification
 	local sanity_percent = inst.components.sanity:GetPercent()
-	inst.components.sanity:SetMax(100)
+	inst.components.sanity:SetMax(TUNING.DENDROBIUM_SANITY)
     inst.components.sanity:SetPercent(sanity_percent)
 	inst.components.sanity.custom_rate_fn = SanityRegenfn
 	inst.components.sanity.rate_modifier = 1
 	inst.components.sanity.night_drain_mult = 0
 
 	-- Eater modification
-	inst.components.eater:SetOnEatFn(OnEatFoodsFn)
+	inst.components.eater.strongstomach = false 
 	inst.components.eater.stale_hunger = TUNING.WICKERBOTTOM_STALE_FOOD_HUNGER
 	inst.components.eater.stale_health = TUNING.WICKERBOTTOM_STALE_FOOD_HEALTH
 	inst.components.eater.spoiled_hunger = TUNING.WICKERBOTTOM_SPOILED_FOOD_HUNGER
 	inst.components.eater.spoiled_health = TUNING.WICKERBOTTOM_SPOILED_FOOD_HEALTH
-	inst.components.eater.strongstomach = false 
+	inst.components.eater:SetOnEatFn(function(inst, food)
+		if food and food.components.edible and food.components.edible.foodtype == "MEAT" then
+			if not food.prefab == "monstermeat" then
+				--- Code
+			end
+		end 
+	end)
 
-	-- Extra pet
-	local totalShadow = 4
-	local defMaxPet = inst.components.petleash:GetMaxPets()
-	inst.components.petleash:SetMaxPets(defMaxPet+totalShadow)
-    inst.components.petleash:SetOnSpawnFn(OnSpawnPetFn)
-    inst.components.petleash:SetOnDespawnFn(OnDespawnPetFn)
+	-- Can read book
+	inst:AddComponent("reader")
+
+	-- Pets
+	if inst.components.petleash then
+		inst.components.petleash:SetOnSpawnFn(OnSpawnPetFn)
+		inst.components.petleash:SetOnDespawnFn(OnDespawnPetFn)
+		inst.components.petleash:SetMaxPets(inst.components.petleash:GetMaxPets()+2)
+	end
+
+	-- Sanity aura
+	inst:AddComponent("sanityaura")
+	inst.components.sanityaura.aura = .2
+
+	-- Combat damage modification
+	inst.components.combat:SetDefaultDamage(20)
+	inst.components.combat.damagemultiplier = 1.2
+
+	-- Special
+	inst:ListenForEvent("itemget", function (inst, data)
+		if inst.components.inventory:Has("cursed_monkey_token", 1) then
+			inst.components.cursable:RemoveCurse("MONKEY", 1)
+		end
+	end)
+
+	-- Classified
+	local untouchables = { babybeefalo = true }
+	inst:DoTaskInTime(0, function()
+		local old = inst.replica.combat.IsValidTarget
+		inst.replica.combat.IsValidTarget = function(self, target)
+			if target and untouchables[target.prefab] then
+				return false
+			end
+			return old(self, target)
+		end
+	end)
 	
+	-- Classified
+	local unequiable = { knive = true }
+	inst:ListenForEvent("equip", function(inst, data)
+		if unequiable[data.item.prefab] then 
+			inst:DoTaskInTime(1, function(inst)
+				inst.components.inventory:GiveItem(data.item)
+			end)
+			inst.components.talker:Say("I can't use that!", 2.5)
+		end
+	end)
+
+	----------------------------------------------------------------------
 	inst:ListenForEvent("Transform[UP]", function(inst)
-		inst.components.builder.science_bonus = 1
-		inst.components.builder.magic_bonus = 1
 		inst.components.locomotor.walkspeed = TUNING.WILSON_WALK_SPEED*1.5
 		inst.components.locomotor.runspeed = TUNING.WILSON_RUN_SPEED*1.5
 	end)
 	
 	inst:ListenForEvent("Transform[DOWN]", function(inst)
-		inst.components.builder.science_bonus = 0
-		inst.components.builder.magic_bonus = 0
 		inst.components.locomotor.walkspeed = TUNING.WILSON_WALK_SPEED*1.25
 		inst.components.locomotor.runspeed = TUNING.WILSON_RUN_SPEED*1.25
 	end)
-	
-	-- Combat damage modification
-	inst.components.combat:SetDefaultDamage(20)
-	inst.components.combat.damagemultiplier = 1.2
 
-	-- Character can read book
-	inst:AddComponent("reader")
-
-	-- Reize character size
-	inst.Transform:SetScale(1, 1, 1)
-
-	-- Buff at fullmoon
-	inst:AddComponent("werebeast")
-	inst.components.werebeast:SetOnWereFn(SetWere)
-	inst.components.werebeast:SetOnNormalFn(SetNormal)
-	inst.components.werebeast:SetTriggerLimit(1)
-
-	-- Fullmoon sanity aura
-	inst:AddComponent("sanityaura")
-	inst.components.sanityaura.aura = .2
-	inst.components.sanityaura.aurafn = CalcSanityAuraFn
-
-	-- Other extra Components
+	-- Custom
 	inst:AddComponent("orchidacite")
 	inst.components.orchidacite:LoadStatus(true)
-	inst.components.orchidacite:CantKill({ babybeefalo = true })
 	inst.components.orchidacite:SetMax("energy", 100)
-	inst.components.orchidacite:SetPercent("energy", .7)
+	inst.components.orchidacite:SetPercent("energy", .2)
 	inst.components.orchidacite:SetMax("shield", 10)
 	inst.components.orchidacite:SetPercent("shield", 1)
 	inst.components.orchidacite:SetMax("magic", 300)
-	inst.components.orchidacite:SetPercent("magic", .4)
+	inst.components.orchidacite:SetPercent("magic", .5)
 	inst.components.orchidacite:SetMax("treasure", 100)
-	inst.components.orchidacite:SetPercent("treasure", .1)
+	inst.components.orchidacite:SetPercent("treasure", 0)
 	inst.components.orchidacite:SetMax("bloom", 100)
-	inst.components.orchidacite:SetPercent("bloom", .2)
+	inst.components.orchidacite:SetPercent("bloom", 0)
 	inst.components.orchidacite:SetMax("quantum", 500)
-	inst.components.orchidacite:SetPercent("quantum",  .3)
+	inst.components.orchidacite:SetPercent("quantum",  .7)
 
 	-- Leveling
 	inst:AddComponent("explevel")
@@ -1162,18 +1045,42 @@ local master_postinit = function(inst)
 	-- Buttons
 	inst:AddComponent("chronometer")
 	inst:DoPeriodicTask(0, function(inst)
-		inst.transform_cd:set(inst.components.chronometer ~= nil and inst.components.chronometer:GetTimeLeft("transform_skill") or 0)	
-		inst.sneakattack_cd:set(inst.components.chronometer ~= nil and inst.components.chronometer:GetTimeLeft("sneakattack_skill") or 0)	
-		inst.sleep_cd:set(inst.components.chronometer ~= nil and inst.components.chronometer:GetTimeLeft("sleep_skill") or 0)
+		inst.bloomd_eventcd:set(
+			inst.components.chronometer ~= nil and 
+			inst.components.chronometer:GetTimeLeft("bloomd_eventcd") or 0
+		);
+		inst.healingd_eventcd:set(
+			inst.components.chronometer ~= nil and 
+			inst.components.chronometer:GetTimeLeft("healingd_eventcd") or 0
+		);
+		inst.shadowg_eventcd:set(
+			inst.components.chronometer ~= nil and 
+			inst.components.chronometer:GetTimeLeft("shadowg_eventcd") or 0
+		);
+		inst.shadoww_eventcd:set(
+			inst.components.chronometer ~= nil and 
+			inst.components.chronometer:GetTimeLeft("shadoww_eventcd") or 0
+		);
+		inst.sneaka_eventcd:set(
+			inst.components.chronometer ~= nil and 
+			inst.components.chronometer:GetTimeLeft("sneaka_eventcd") or 0
+		);
+		inst.treasuret_eventcd:set(
+			inst.components.chronometer ~= nil and 
+			inst.components.chronometer:GetTimeLeft("treasuret_eventcd") or 0
+		);
 	end)
 	
-	-- Custom: for extra Components
+	-- Levelup
 	inst:DoTaskInTime(1, ApplyExpLevel)
 	inst:ListenForEvent("killed", OnKillOther)
 
-	-- Resume Checking
-	inst:ListenForEvent("death", OnDeathFn)
-	inst:ListenForEvent("respawnfromghost", OnRespawnFn)
+	-- Incoming update
+	inst:ListenForEvent("death", function(inst, data) end)
+	inst:ListenForEvent("respawnfromghost", function(inst, data) end)
+	inst:WatchWorldState("startday", function(inst) end)
+	inst:WatchWorldState("startdusk", function(inst) end)
+	inst:WatchWorldState("startnight", function(inst) end)
 
 	-- Save/Load Data
 	inst.OnLoad = OnLoadFn

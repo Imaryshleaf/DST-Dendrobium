@@ -8,7 +8,7 @@ description = "An imanginary girl from forgotten kingdom."
 author = "The last fallen knight"
 
 -- Mod version
-version = "1.2.4.2"
+version = "2.0.0.4"
 
 -- This is the URL name of the mod's thread on the forum; the part after the ? and before the first & in the url
 forumthread = ""
@@ -41,7 +41,7 @@ server_filter_tags = { "character" }
 -- Mod name+
 folder_name = folder_name or ""
 if not folder_name:find("workshop-") then
-    name = name..". Knight"
+    name = name..". Project"
 end
 
 -- Mod key configs
@@ -59,17 +59,6 @@ for i = 1, #ListOfKeys do
 end
 
 configuration_options = {
-	{
-		name = "dodgeSlide",
-		label = "Dodge Slide",
-		hover = "Allow Dendrobium to Perform Dodge Slide when no soul orb in inventory",
-		options =
-		{
-			{description="Disabled", data = "disable"},
-			{description="Enabled", data = "enable"},
-		},
-		default = "disable",
-	},
 	{
 		name = "Key1",
 		label = "Level Information",

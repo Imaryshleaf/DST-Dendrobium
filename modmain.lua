@@ -29,12 +29,11 @@ Assets = {
     Asset( "ANIM", "anim/badges/bloom_badge.zip" ),
     Asset( "ANIM", "anim/badges/magic_badge.zip" ),
     Asset( "ANIM", "anim/badges/quantum_badge.zip" ),
-	Asset( "ANIM", "anim/badges/hitcount_badge.zip" ),
     -- Actions
     Asset("ANIM", "anim/actions/action_dodge.zip"),
     Asset("ANIM", "anim/actions/action_leap.zip"),
-    Asset("ANIM", "anim/actions/action_bloom.zip"),
-    Asset("ANIM", "anim/actions/action_mindcontrol.zip"),
+    Asset("ANIM", "anim/actions/action_transform.zip"),
+	Asset("ANIM", "anim/actions/action_mindcontrol.zip"),
 }
 PrefabFiles = {
 	"dendrobium",
@@ -46,6 +45,7 @@ PrefabFiles = {
 	-- Entities
 	"ents_treasure_trunk",
 	"ents_dendrobium_shadow",
+	"ents_shadow_remnats",
 	-- Fx
 	"fx_dark_shield",
 	"fx_fire_ring",
@@ -109,34 +109,23 @@ STRINGS.NAMES.NOCTILUCOUS_JADE = "Noctilucous Jade"
 STRINGS.CHARACTERS.GENERIC.DESCRIBE.NOCTILUCOUS_JADE = "A rare mineral that glimmers in the dark"
 STRINGS.NAMES.DENDROBIUM_SCYTHE = "Scythe"
 STRINGS.CHARACTERS.GENERIC.DESCRIBE.DENDROBIUM_SCYTHE = "Scythe!"
-
--- Describe something
+-- Workable Objects
 STRINGS.NAMES.TREASURE_TRUNK = "X Mark"
 STRINGS.CHARACTERS.GENERIC.DESCRIBE.TREASURE_TRUNK = "Something hidden underneath"
-
--- Random Talk
-STRINGS.DENDROBIUM_RANDOM_TALK_DAYTIME = {
-	"Another new day", 
-	"Another day, another adventure",
-}
-STRINGS.DENDROBIUM_RANDOM_TALK_DUSKTIME = {
-	"Darkness will coming soon", 
-	"Twilight will soon bring darkness", 
-}
-STRINGS.DENDROBIUM_RANDOM_TALK_NIGHTTIME = {
-	"Here we go again, the night",
-	"Hello darkness",
-	"Goodbye twilight",
-}
+-- Other Objects
+STRINGS.NAMES.DENDROBIUM_SHADOW_DUELIST = "Shadow Duelist"
+STRINGS.NAMES.DENDROBIUM_SHADOW_LUMBER = "Shadow Worker"
+STRINGS.NAMES.DENDROBIUM_SHADOW_MINER = "Shadow Worker"
+STRINGS.NAMES.DENDROBIUM_SHADOW_DIGGER = "Shadow Worker"
+STRINGS.NAMES.DENDROBIUM_SHADOW_REMNANTS = "Shadow Remnant"
 
 -- Recipetabs, ingredients and recipes
 STRINGS.TABS.DENDROBIUM = "Dendrobium"
 RECIPETABS['DENDROBIUM'] = {str = "DENDROBIUM", sort = 12, icon = "dendrobium.tex", icon_atlas = "images/dendrobium.xml"}
-
 AddRecipe("dendrobium_scythe", {
 	Ingredient("spear", 1),
-	Ingredient(CHARACTER_INGREDIENT.HEALTH, 20),
-	Ingredient(CHARACTER_INGREDIENT.SANITY, 15),
+	Ingredient(CHARACTER_INGREDIENT.HEALTH, 10),
+	Ingredient(CHARACTER_INGREDIENT.SANITY, 5),
 }, 
 	RECIPETABS.DENDROBIUM, 
 	TECH.NONE, nil, nil, nil, nil, nil, 
@@ -149,17 +138,24 @@ AddRecipe("dendrobium_scythe", {
 local DANGER_CANT_TAGS = { "player", "companion", "alignwall", "stalkerminion", "shadowminion" }
 local DANGER_MUST_TAGS = { "monster", "werepig", "frog" }
 
---- Conditions 
+--- Check1
 local function IsValidVictim(victim) return victim ~= nil and not (victim:HasTag("veggie") or victim:HasTag("structure") or victim:HasTag("wall") or victim:HasTag("balloon") or victim:HasTag("soulless") or victim:HasTag("chess") or victim:HasTag("shadow") or victim:HasTag("shadowcreature") or victim:HasTag("shadowminion") or victim:HasTag("shadowchesspiece") or victim:HasTag("groundspike") or victim:HasTag("smashable")) and victim.components.combat ~= nil and victim.components.health ~= nil end
 local function TagListToCast(inst) return not inst:HasTag("playerghost") and not inst.sneakatk_isactive and not (inst.sg:HasStateTag("sleeping") or inst.sg:HasStateTag("resting")) end
 local function TagListToHide(inst) return not inst:HasTag("playerghost") and not (inst.sg:HasStateTag("sleeping") or inst.sg:HasStateTag("resting")) end
-local function IsNotEnough(inst, typestr, amount)
-	if typestr == "energy" then
-		if inst.components.orchidacite then
-			if inst.components.orchidacite.min_energy < amount then
-				return true
-			end
-		end
+
+-- Check2
+local function hasCharge(inst, amount, conds, typestr)
+	if conds == "more" then
+		if typestr == "energy" then if inst.components.orchidacite then if inst.components.orchidacite.min_energy > amount then return true end end end
+		if typestr == "magic" then if inst.components.orchidacite then if inst.components.orchidacite.min_magic > amount then return true end end end
+	end
+	if conds == "less" then
+		if typestr == "energy" then if inst.components.orchidacite then if inst.components.orchidacite.min_energy < amount then return true end end end
+		if typestr == "magic" then if inst.components.orchidacite then if inst.components.orchidacite.min_magic < amount then return true end end end
+	end
+	if conds == "cost" then
+		if typestr == "energy" then if inst.components.orchidacite then return inst.components.orchidacite:DoDelta("energy", amount) end end
+		if typestr == "magic" then if inst.components.orchidacite then return inst.components.orchidacite:DoDelta("magic", amount) end end
 	end
 end
 
@@ -187,20 +183,7 @@ local function DoDeltaCost(inst, typestr, amount)
 	end
 end
 
---- Random talk 
-AddPrefabPostInit("dendrobium", function(inst)
-	inst:WatchWorldState("startday", function(inst)
-		return inst.components.talker:Say(STRINGS.DENDROBIUM_RANDOM_TALK_DAYTIME[math.random(#STRINGS.DENDROBIUM_RANDOM_TALK_DAYTIME)], 2);
-	end)
-	inst:WatchWorldState("startdusk", function(inst)
-		return inst.components.talker:Say(STRINGS.DENDROBIUM_RANDOM_TALK_DUSKTIME[math.random(#STRINGS.DENDROBIUM_RANDOM_TALK_DUSKTIME)], 2);
-	end)
-	inst:WatchWorldState("startnight", function(inst)
-		return inst.components.talker:Say(STRINGS.DENDROBIUM_RANDOM_TALK_NIGHTTIME[math.random(#STRINGS.DENDROBIUM_RANDOM_TALK_NIGHTTIME)], 2);
-	end)
-end)
-
---- Hit power and damage boost
+--- Hit power and damage boost (Monsters are killed with this damage won't grant exp)
 AddPrefabPostInit("dendrobium", function(inst)
 	inst.hit_type = 0
 	inst.hit_count = 0
@@ -211,7 +194,7 @@ AddPrefabPostInit("dendrobium", function(inst)
 		-- Normal
 		if inst.hit_type == 0 then
 		if inst.hit_count < 6 then
-		inst.hitcount_badge:GetAnimState():PlayAnimation("hit_count_normal_"..(inst.hit_count).."")
+		inst.components.talker:Say("[ Hit Power ]\n[ ### - "..(inst.hit_count).." - ### ]", 1, true)
 		if inst.hit_count == 1 then
 			if IsValidVictim(other) and not inst.components.health:IsDead() then
 				inst.components.health:DoDelta(2)
@@ -238,7 +221,6 @@ AddPrefabPostInit("dendrobium", function(inst)
 		end
 		else 
 		inst.hit_count = inst.hit_count * 0
-		inst.hitcount_badge:GetAnimState():PlayAnimation("empty")
 		if IsValidVictim(other) then
 			local fx2 = SpawnPrefab("fx_fire_ring") fx2.Transform:SetScale(0.5, 0.5, 0.5) fx2.Transform:SetPosition(other:GetPosition():Get())
 			other.components.health:DoDelta(-hunger_current)
@@ -246,7 +228,7 @@ AddPrefabPostInit("dendrobium", function(inst)
 		-- Heal
 		if inst.hit_type == 1 then
 		if inst.hit_count < 6 then
-		inst.hitcount_badge:GetAnimState():PlayAnimation("hit_count_heal_"..(inst.hit_count).."")
+		inst.components.talker:Say("[ Hit Power - Recover ]\n[ ### - "..(inst.hit_count).." - ### ]", 1, true)
 		if not inst.components.health:IsDead() then
 		if inst.hit_count == 1 then
 			if IsValidVictim(other) then
@@ -271,7 +253,6 @@ AddPrefabPostInit("dendrobium", function(inst)
 		end end
 		else 
 		inst.hit_count = inst.hit_count * 0
-		inst.hitcount_badge:GetAnimState():PlayAnimation("empty")
 		if IsValidVictim(other) and not inst.components.health:IsDead() then
 			local fx2 = SpawnPrefab("fx_fire_ring") fx2.Transform:SetScale(0.5, 0.5, 0.5) fx2.Transform:SetPosition(other:GetPosition():Get())
 			other.components.health:DoDelta(-hunger_current)
@@ -283,7 +264,7 @@ AddPrefabPostInit("dendrobium", function(inst)
 		-- Fire
 		if inst.hit_type == 2 then
 		if inst.hit_count < 6 then
-		inst.hitcount_badge:GetAnimState():PlayAnimation("hit_count_fire_"..(inst.hit_count).."")
+		inst.components.talker:Say("[ Hit Power - Flame ]\n[ ### - "..(inst.hit_count).." - ### ]", 1, true)
 		if IsValidVictim(other) and other.components.burnable then
 			other.components.burnable:Ignite()
 		end
@@ -313,7 +294,6 @@ AddPrefabPostInit("dendrobium", function(inst)
 		end
 		else
 		inst.hit_count = inst.hit_count * 0
-		inst.hitcount_badge:GetAnimState():PlayAnimation("empty")
 		if IsValidVictim(other) then
 			local fx2 = SpawnPrefab("fx_exploded_small") fx2.Transform:SetScale(0.7, 0.7, 0.7) fx2.Transform:SetPosition(other:GetPosition():Get())
 			other.components.health:DoDelta(-hunger_current)
@@ -321,7 +301,7 @@ AddPrefabPostInit("dendrobium", function(inst)
 		-- Ice
 		if inst.hit_type == 3 then
 		if inst.hit_count < 6 then
-		inst.hitcount_badge:GetAnimState():PlayAnimation("hit_count_ice_"..(inst.hit_count).."")
+		inst.components.talker:Say("[ Hit Power - Frost ]\n[ ### - "..(inst.hit_count).." - ### ]", 1, true)
 		if inst.hit_count == 1 then
 			if IsValidVictim(other) and other.components.freezable then
 				other.components.freezable:AddColdness(0.2)
@@ -350,7 +330,6 @@ AddPrefabPostInit("dendrobium", function(inst)
 		end
 		else
 		inst.hit_count = inst.hit_count * 0
-		inst.hitcount_badge:GetAnimState():PlayAnimation("empty")
 		if IsValidVictim(other) then
 			local fx2 = SpawnPrefab("splash") fx2.Transform:SetScale(1.2, 1.2, 1.2) fx2.Transform:SetPosition(other:GetPosition():Get())
 			other.components.health:DoDelta(-hunger_current)
@@ -362,7 +341,7 @@ AddPrefabPostInit("dendrobium", function(inst)
 		-- Shadow
 		if inst.hit_type == 4 then
 		if inst.hit_count < 6 then
-		inst.hitcount_badge:GetAnimState():PlayAnimation("hit_count_shadow_"..(inst.hit_count).."")
+		inst.components.talker:Say("[ Hit Power - Shadow]\n[ ### - "..(inst.hit_count).." - ### ]", 1, true)
 		SpawnPrefab("statue_transition_2").Transform:SetPosition(other:GetPosition():Get())
 		if inst.hit_count == 1 then
 			if IsValidVictim(other) and inst.components.sanity then
@@ -387,7 +366,6 @@ AddPrefabPostInit("dendrobium", function(inst)
 		end
 		else
 		inst.hit_count = inst.hit_count * 0
-		inst.hitcount_badge:GetAnimState():PlayAnimation("empty")
 		if IsValidVictim(other) then
 			SpawnPrefab("statue_transition").Transform:SetPosition(other:GetPosition():Get())
 			SpawnPrefab("statue_transition_2").Transform:SetPosition(other:GetPosition():Get())
@@ -399,7 +377,6 @@ AddPrefabPostInit("dendrobium", function(inst)
 	end)
 end)
 
---- Widget click skills (Sneak attack)
 local function SneakAttack(inst, data)
 	local other = data.target
 	if IsValidVictim(other) then
@@ -557,7 +534,7 @@ local function Hide(inst)
 end
 AddPrefabPostInit("dendrobium", function(inst)
 	if TagListToHide(inst) then
-		inst:ListenForEvent("sneakattack_skill", function(inst)
+		inst:ListenForEvent("sneaka_event", function(inst)
 			if inst.components.explevel:Level0Backstab() then
 				return inst.components.talker:Say("No enough Exp!");
 			end
@@ -567,113 +544,72 @@ AddPrefabPostInit("dendrobium", function(inst)
 			if inst.components.sanity.current < 40 then
 				return inst.components.talker:Say("I can't do that, I need sleep!");
 			end
-			if IsNotEnough(inst, "energy", 7) then
-				return inst.components.talker:Say("No enough energy to do that");
-			end
 			if not inst.sneakatk_isactive then
-			if inst.sg:HasStateTag("moving") then
-				DoDeltaCost(inst, "energy", -2) inst.sg:GoToState("repelled") else inst.sg:GoToState("startchanneling")
-			end
-			Hide(inst)
-			DoDeltaCost(inst, "energy", -7)
-			if inst.components.explevel:Level1Backstab() then
-				inst.components.talker:Say("Backstab\n- [ [1/8] | READY ] -")
-				DoDeltaCost(inst, "sanity", -10)
-			elseif inst.components.explevel:Level2Backstab() then
-				inst.components.talker:Say("Backstab\n- [ [2/8] | READY ] -")
-				DoDeltaCost(inst, "sanity", -14)
-			elseif inst.components.explevel:Level3Backstab() then
-				inst.components.talker:Say("Backstab\n- [ [3/8] | READY ] -")
-				DoDeltaCost(inst, "sanity", -18)
-			elseif inst.components.explevel:Level4Backstab() then
-				inst.components.talker:Say("Backstab\n- [ [4/8] | READY ] -")
-				DoDeltaCost(inst, "sanity", -22)
-			elseif inst.components.explevel:Level5Backstab() then
-				inst.components.talker:Say("Backstab\n- [ [5/8] | READY ] -")
-				DoDeltaCost(inst, "sanity", -26)
-			elseif inst.components.explevel:Level6Backstab() then
-				inst.components.talker:Say("Backstab\n- [ [6/8] | READY ] -")
-				DoDeltaCost(inst, "sanity", -30)
-			elseif inst.components.explevel:Level7Backstab() then
-				inst.components.talker:Say("Backstab\n- [ [7/8] | READY ] -")
-				DoDeltaCost(inst, "sanity", -32)
-			elseif inst.components.explevel:LevelMaxBackstab() then
-				inst.components.talker:Say("Backstab\n- [ [8/8] | READY ] -")
-				DoDeltaCost(inst, "sanity", -35)
-			end
-			inst.timerInShadow = inst:DoTaskInTime(20, function() Unhide(inst) end)
+				Hide(inst)
+				if inst.components.explevel:Level1Backstab() then
+					inst.components.talker:Say("Backstab\n- [ [1/8] | READY ] -")
+					DoDeltaCost(inst, "sanity", -10)
+				elseif inst.components.explevel:Level2Backstab() then
+					inst.components.talker:Say("Backstab\n- [ [2/8] | READY ] -")
+					DoDeltaCost(inst, "sanity", -14)
+				elseif inst.components.explevel:Level3Backstab() then
+					inst.components.talker:Say("Backstab\n- [ [3/8] | READY ] -")
+					DoDeltaCost(inst, "sanity", -18)
+				elseif inst.components.explevel:Level4Backstab() then
+					inst.components.talker:Say("Backstab\n- [ [4/8] | READY ] -")
+					DoDeltaCost(inst, "sanity", -22)
+				elseif inst.components.explevel:Level5Backstab() then
+					inst.components.talker:Say("Backstab\n- [ [5/8] | READY ] -")
+					DoDeltaCost(inst, "sanity", -26)
+				elseif inst.components.explevel:Level6Backstab() then
+					inst.components.talker:Say("Backstab\n- [ [6/8] | READY ] -")
+					DoDeltaCost(inst, "sanity", -30)
+				elseif inst.components.explevel:Level7Backstab() then
+					inst.components.talker:Say("Backstab\n- [ [7/8] | READY ] -")
+					DoDeltaCost(inst, "sanity", -32)
+				elseif inst.components.explevel:LevelMaxBackstab() then
+					inst.components.talker:Say("Backstab\n- [ [8/8] | READY ] -")
+					DoDeltaCost(inst, "sanity", -35)
+				end
+				inst.timerInShadow = inst:DoTaskInTime(20, function() Unhide(inst) end)
 			elseif inst.sneakatk_isactive then
-			Unhide(inst)
-			if inst.components.explevel:Level1Backstab() then
-				inst.components.talker:Say("Backstab\n- [ [1/8] | CANCEL ] -")
-				DoDeltaCost(inst, "sanity", 8)
-			elseif inst.components.explevel:Level2Backstab() then
-				inst.components.talker:Say("Backstab\n- [ [2/8] | CANCEL ] -")
-				DoDeltaCost(inst, "sanity", 12)
-			elseif inst.components.explevel:Level3Backstab() then
-				inst.components.talker:Say("Backstab\n- [ [3/8] | CANCEL ] -")
-				DoDeltaCost(inst, "sanity", 16)
-			elseif inst.components.explevel:Level4Backstab() then
-				inst.components.talker:Say("Backstab\n- [ [4/8] | CANCEL ] -")
-				DoDeltaCost(inst, "sanity", 20)
-			elseif inst.components.explevel:Level5Backstab() then
-				inst.components.talker:Say("Backstab\n- [ [5/8] | CANCEL ] -")
-				DoDeltaCost(inst, "sanity", 24)
-			elseif inst.components.explevel:Level6Backstab() then
-				inst.components.talker:Say("Backstab\n- [ [6/8] | CANCEL ] -")
-				DoDeltaCost(inst, "sanity", 28)
-			elseif inst.components.explevel:Level7Backstab() then
-				inst.components.talker:Say("Backstab\n- [ [7/8] | CANCEL ] -")
-				DoDeltaCost(inst, "sanity", 30)
-			elseif inst.components.explevel:LevelMaxBackstab() then
-				inst.components.talker:Say("Backstab\n- [ [8/8] | CANCEL ] -")
-				DoDeltaCost(inst, "sanity", 32)
+				Unhide(inst)
+				if inst.components.explevel:Level1Backstab() then
+					inst.components.talker:Say("Backstab\n- [ [1/8] | CANCEL ] -")
+					DoDeltaCost(inst, "sanity", 8)
+				elseif inst.components.explevel:Level2Backstab() then
+					inst.components.talker:Say("Backstab\n- [ [2/8] | CANCEL ] -")
+					DoDeltaCost(inst, "sanity", 12)
+				elseif inst.components.explevel:Level3Backstab() then
+					inst.components.talker:Say("Backstab\n- [ [3/8] | CANCEL ] -")
+					DoDeltaCost(inst, "sanity", 16)
+				elseif inst.components.explevel:Level4Backstab() then
+					inst.components.talker:Say("Backstab\n- [ [4/8] | CANCEL ] -")
+					DoDeltaCost(inst, "sanity", 20)
+				elseif inst.components.explevel:Level5Backstab() then
+					inst.components.talker:Say("Backstab\n- [ [5/8] | CANCEL ] -")
+					DoDeltaCost(inst, "sanity", 24)
+				elseif inst.components.explevel:Level6Backstab() then
+					inst.components.talker:Say("Backstab\n- [ [6/8] | CANCEL ] -")
+					DoDeltaCost(inst, "sanity", 28)
+				elseif inst.components.explevel:Level7Backstab() then
+					inst.components.talker:Say("Backstab\n- [ [7/8] | CANCEL ] -")
+					DoDeltaCost(inst, "sanity", 30)
+				elseif inst.components.explevel:LevelMaxBackstab() then
+					inst.components.talker:Say("Backstab\n- [ [8/8] | CANCEL ] -")
+					DoDeltaCost(inst, "sanity", 32)
+				end
+				if inst.timerInShadow ~= nil then
+					inst.timerInShadow:Cancel()
+					inst.timerInShadow = nil
+				end 
 			end
-			if inst.timerInShadow ~= nil then
-				inst.timerInShadow:Cancel()
-				inst.timerInShadow = nil
-			end end
 		end)
 	end
 end)
 
---- Widget click skills (Bedroll)
-local function RestTick(inst)
-    local isstarving = false
-    local HUNGER_REST_PER_TICK = 0
-    local SANITY_REST_PER_TICK = 1
-    local HEALTH_REST_PER_TICK = 1
-	local SLEEP_TEMP_PER_TICK = 1
-	local SLEEP_TARGET_TEMP = 40
-    if inst.components.hunger ~= nil then
-        inst.components.hunger:DoDelta(HUNGER_REST_PER_TICK, true, true)
-        isstarving = inst.components.hunger:IsStarving()
-    end
-    if inst.components.sanity ~= nil and inst.components.sanity:GetPercentWithPenalty() < 1 then
-        inst.components.sanity:DoDelta(SANITY_REST_PER_TICK, true)
-    end
-    if not isstarving and inst.components.health ~= nil then
-        inst.components.health:DoDelta(HEALTH_REST_PER_TICK, true, nil, true)
-    end
-    if inst.components.temperature ~= nil then
-        if inst.components.temperature:GetCurrent() < SLEEP_TARGET_TEMP then
-            inst.components.temperature:SetTemperature(inst.components.temperature:GetCurrent() + SLEEP_TEMP_PER_TICK)
-        elseif inst.components.temperature:GetCurrent() > SLEEP_TARGET_TEMP then
-            inst.components.temperature:SetTemperature(inst.components.temperature:GetCurrent() - SLEEP_TEMP_PER_TICK)
-        end
-    end
-    if isstarving then
-		inst.sg:GoToState("restingwake")
-		inst.isresting = false
-    end
-end
-local function attackdrest(inst)
-	if inst.resttask ~= nil then inst.resttask:Cancel() inst.resttask = nil end
-	if inst.warncheck ~= nil then inst.warncheck:Cancel() inst.warncheck = nil end
-	inst:RemoveEventCallback("attacked", attackdrest)
-end
 AddPrefabPostInit("dendrobium", function(inst)
-	inst:ListenForEvent("sleep_skill", function(inst)
+	inst:ListenForEvent("healingd_event", function(inst)
 		local x,y,z = inst.Transform:GetWorldPosition()
 		local warning = TheSim:FindEntities(x, y, z, 17, nil, DANGER_CANT_TAGS, DANGER_MUST_TAGS)
 		if inst.components.sanity.current < 20 then
@@ -684,37 +620,47 @@ AddPrefabPostInit("dendrobium", function(inst)
 		else
 			if not inst.sneakatk_isactive then
 				if not inst.sg:HasStateTag("resting") then
-					inst.isresting = true
-					inst.sg:GoToState("resting")
-					inst:ListenForEvent("attacked", attackdrest)
-					if inst.resttask ~= nil then inst.resttask:Cancel() end
-					inst.resttask = inst:DoPeriodicTask(1, function(inst) RestTick(inst) end)
+					inst.sg:GoToState("resting") inst.isresting = true
 				elseif inst.sg:HasStateTag("resting") and inst.isresting then
-					inst.isresting = false
-					inst.sg:GoToState("restingwake")
-					inst:RemoveEventCallback("attacked", attackdrest)
-					if inst.resttask ~= nil then inst.resttask:Cancel() inst.resttask = nil end
+					inst.sg:GoToState("restingwake") inst.isresting = false
 				end
 			end
 		end
 	end)
 end)
 
---- Widget click skills (Bedroll)
 AddPrefabPostInit("dendrobium", function(inst)
-	inst:ListenForEvent("transform_skill", function(inst)
-		if not inst.transformS then
-			inst.transformS = true
-			
-			inst:DoTaskInTime(20, function() 
-				inst.transformS = false 
-			
-			end)
+	inst:ListenForEvent("shadowg_event", function(inst)
+		if TagListToCast(inst) and not inst.iscasting then 
+			if hasCharge(inst, 20, "more", "magic") then
+				if not inst.castype ~= nil then inst.castype = nil end
+				inst.castype = "dendrobium_shadow_duelist"
+				hasCharge(inst, -20, "cost", "magic")
+				inst.sg:GoToState("BookSG")
+			else
+				inst.sg:GoToState("mindcontrolled")
+				inst.components.talker:Say("I don't have enough magic power!", 2)
+			end
 		end
 	end)
 end)
 
---- Key press skills (Level info)
+AddPrefabPostInit("dendrobium", function(inst)
+	inst:ListenForEvent("shadoww_event", function(inst)
+		if TagListToCast(inst) and not inst.iscasting then 
+			if hasCharge(inst, 10, "more", "magic") then 
+				if not inst.castype ~= nil then inst.castype = nil end
+				inst.castype = "dendrobium_shadow_worker"
+				hasCharge(inst, -10, "cost", "magic")
+				inst.sg:GoToState("BookSG")
+			else
+				inst.sg:GoToState("mindcontrolled")
+				inst.components.talker:Say("I don't have enough magic power!", 2)
+			end
+		end
+	end)
+end)
+
 AddModRPCHandler("dendrobium", "LevelInfo", function(inst)
 	if TagListToCast(inst) and not inst.iscasting then
 	inst.iscasting = true
@@ -895,26 +841,22 @@ AddModRPCHandler("dendrobium", "SpellSwitcher", function(inst)
 	if  inst.spellpower_count == (0) then
 		DoDeltaCost(inst, "energy", -1)
 		inst.spellpower_count = inst.spellpower_count + 1
-		inst.components.talker:Say("Spell Power \n[ - [1/5] - ]", 2)
+		inst.components.talker:Say("Spell Power \n[ - [1/4] - ]", 2)
 	elseif inst.spellpower_count == (1) then
 		DoDeltaCost(inst, "energy", -1)
 		inst.spellpower_count = inst.spellpower_count + 1
-		inst.components.talker:Say("Spell Power \n[ - [2/5] - ]", 2)
+		inst.components.talker:Say("Spell Power \n[ - [2/4] - ]", 2)
 	elseif inst.spellpower_count == (2) then
 		DoDeltaCost(inst, "energy", -1)
 		inst.spellpower_count = inst.spellpower_count + 1
-		inst.components.talker:Say("Spell Power \n[ - [3/5] - ]", 2)
+		inst.components.talker:Say("Spell Power \n[ - [3/4] - ]", 2)
 	elseif inst.spellpower_count == (3) then
 		DoDeltaCost(inst, "energy", -1)
 		inst.spellpower_count = inst.spellpower_count + 1
-		inst.components.talker:Say("Spell Power \n[ - [4/5] - ]", 2)
+		inst.components.talker:Say("Spell Power \n[ - [4/4] - ]", 2)
 	elseif inst.spellpower_count == (4) then
 		DoDeltaCost(inst, "energy", -1)
-		inst.spellpower_count = inst.spellpower_count + 1
-		inst.components.talker:Say("Spell Power \n[ - [5/5] - ]", 2)
-	elseif inst.spellpower_count == (5) then
-		DoDeltaCost(inst, "energy", -1)
-		inst.spellpower_count = inst.spellpower_count - 5
+		inst.spellpower_count = inst.spellpower_count - 4
 		inst.components.talker:Say("Spell Power \n[ - [OFF] - ]", 2)
 	end 
 		inst:DoTaskInTime(0.5, function() inst.iscasting = false end)
@@ -929,32 +871,27 @@ AddModRPCHandler("dendrobium", "HitType", function(inst)
 		DoDeltaCost(inst, "energy", -1)
 		inst.hit_type = inst.hit_type + 1
 		inst.hit_count = inst.hit_count * 0
-		inst.hitcount_badge:GetAnimState():PlayAnimation("empty")
-		inst.components.talker:Say("Heal Attack\n[ - [1/4] - ]", 2)
+		inst.components.talker:Say("Hit Power - Recover\n[ - [ Active ] - ]", 2, true)
 	elseif inst.hit_type == 1 then
 		DoDeltaCost(inst, "energy", -1)
 		inst.hit_type = inst.hit_type + 1
 		inst.hit_count = inst.hit_count * 0
-		inst.hitcount_badge:GetAnimState():PlayAnimation("empty")
-		inst.components.talker:Say("Fire Attack\n[ - [2/4] - ]", 2)
+		inst.components.talker:Say("Hit Power - Flame\n[ - [ Active ] - ]", 2, true)
 	elseif inst.hit_type == 2 then
 		DoDeltaCost(inst, "energy", -1)
 		inst.hit_type = inst.hit_type + 1
 		inst.hit_count = inst.hit_count * 0
-		inst.hitcount_badge:GetAnimState():PlayAnimation("empty")
-		inst.components.talker:Say("Ice Attack\n[ - [3/4] - ]", 2)
+		inst.components.talker:Say("Hit Power - Frost\n[ - [ Active ] - ]", 2, true)
 	elseif inst.hit_type == 3 then
 		DoDeltaCost(inst, "energy", -1)
 		inst.hit_type = inst.hit_type + 1
 		inst.hit_count = inst.hit_count * 0
-		inst.hitcount_badge:GetAnimState():PlayAnimation("empty")
-		inst.components.talker:Say("Shadow Attack\n[ - [4/4] - ]", 2)
+		inst.components.talker:Say("Hit Power - Shadow \n[ - [Active ] - ]", 2, true)
 	elseif inst.hit_type == 4 then
 		DoDeltaCost(inst, "energy", -1)
 		inst.hit_type = inst.hit_type * 0
 		inst.hit_count = inst.hit_count * 0
-		inst.hitcount_badge:GetAnimState():PlayAnimation("empty")
-		inst.components.talker:Say("Normal Attack\n[ - [0/0] - ]", 2)
+		inst.components.talker:Say("Hit Power\n[ - [ Default ] - ]", 2, true)
 	end 
 		inst:DoTaskInTime(0.5, function() inst.iscasting = false end)
 	end

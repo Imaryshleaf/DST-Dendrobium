@@ -622,10 +622,10 @@ local function Inventoryfn()
 	return inst
 end
 
-return Prefab( "common/inventory/soul_orb_fx", fn, assets, prefabs),
-    Prefab( "common/inventory/soul_orb_in", Infn, assets),
-    Prefab( "common/inventory/soul_orb_spawn", Spawnfn, assets, prefabs),
-    Prefab( "common/inventory/soul_orb", Inventoryfn, assets, prefabs),
-    MakeFX("leaper_portal_jumpin_fx", "wortox_portal_jumpin"),
+return MakeFX("leaper_portal_jumpin_fx", "wortox_portal_jumpin"),
     MakeFX("leaper_portal_jumpout_fx", "wortox_portal_jumpout"),
-    MakeFX("leaper_portal", "wortox_portal_jumpout")
+    MakeFX("leaper_portal", "wortox_portal_jumpout"),
+	Prefab("common/inventory/soul_orb_fx", fn, assets, prefabs),
+    Prefab("common/inventory/soul_orb_in", Infn, assets),
+    Prefab("common/inventory/soul_orb_spawn", Spawnfn, assets, prefabs),
+    Prefab("common/inventory/soul_orb", Inventoryfn, assets, prefabs)

@@ -11,6 +11,11 @@ local function onequip(inst, owner)
     owner.AnimState:Hide("ARM_normal")
 	--
 	inst.SoundEmitter:PlaySound("dontstarve/wilson/equip_item_gold")
+	
+	local maxuse=math.floor(inst.components.finiteuses.total-0)
+	local curuse=math.floor(inst.components.finiteuses.current-0)
+	local totaluse = ""..math.floor(curuse*inst.components.finiteuses.total/maxuse)..""
+	inst.components.talker:Say("[ Scythe Usage ]\n - "..(totaluse).."/300 - ")
 end
 
 local function onunequip(inst, owner)
@@ -70,6 +75,11 @@ local function fn()
     inst:AddComponent("equippable")
     inst.components.equippable:SetOnEquip(onequip)
     inst.components.equippable:SetOnUnequip(onunequip)
+
+    inst:AddComponent("finiteuses")
+    inst.components.finiteuses:SetMaxUses(300)
+    inst.components.finiteuses:SetUses(300)
+	inst.components.finiteuses:SetOnFinished(inst.Remove)
 
 	-- 
 	inst:AddComponent("classifieditem")

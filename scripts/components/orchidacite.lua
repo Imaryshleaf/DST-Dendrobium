@@ -4,35 +4,29 @@ local function on_max_shield(self, max_shield) if self.inst.widget_shield_max th
 local function on_min_shield(self, min_shield) if self.inst.widget_shield_min then self.inst.widget_shield_min:set(min_shield/self.max_shield) end end
 local function on_max_magic(self, max_magic) if self.inst.widget_magic_max then self.inst.widget_magic_max:set(max_magic) end end
 local function on_min_magic(self, min_magic) if self.inst.widget_magic_min then self.inst.widget_magic_min:set(min_magic/self.max_magic) end end
-local function on_max_treasure(self, max_treasure) if self.inst.widget_treasure_max then self.inst.widget_treasure_max:set(max_treasure) end end
-local function on_min_treasure(self, min_treasure) if self.inst.widget_treasure_min then self.inst.widget_treasure_min:set(min_treasure/self.max_treasure) end end
-local function on_max_bloom(self, max_bloom) if self.inst.widget_bloom_max then self.inst.widget_bloom_max:set(max_bloom) end end
-local function on_min_bloom(self, min_bloom) if self.inst.widget_bloom_min then self.inst.widget_bloom_min:set(min_bloom/self.max_bloom) end end
 local function on_max_quantum(self, max_quantum) if self.inst.widget_quantum_max then self.inst.widget_quantum_max:set(max_quantum) end end
 local function on_min_quantum(self, min_quantum) if self.inst.widget_quantum_min then self.inst.widget_quantum_min:set(min_quantum/self.max_quantum) end end
---------------------------------------------------------------------------------------------------------------------------------
+
 local Orchidacite = Class(function(self, inst)
 	self.inst = inst
 	self.orchidaceae = true
 	self.SecondForm = "FALSE"
 	self.InitStrings = "Flowers and Diamonds"
-	------------------------------
 	self.inst.spellpower_count = 0
-	self.inst.hit_count_boost = 0
-	-- No badge ------------------
+	
 	self.max_levelxp = 30375
 	self.min_levelxp = 0
-	------------------------------
+	self.max_treasure = 100
+	self.min_treasure = 0
+	self.max_bloom = 100
+	self.min_bloom = 0
+	
 	self.max_energy = 100
 	self.min_energy = 0
 	self.max_shield = 100
 	self.min_shield = 0
 	self.max_magic = 100
 	self.min_magic = 0
-	self.max_treasure = 100
-	self.min_treasure = 0
-	self.max_bloom = 100
-	self.min_bloom = 0
 	self.max_quantum = 100
 	self.min_quantum = 0
 end,nil,{
@@ -42,46 +36,50 @@ end,nil,{
 	min_shield = on_min_shield,
 	max_magic = on_max_magic,
 	min_magic = on_min_magic,
-	max_treasure = on_max_treasure,
-	min_treasure = on_min_treasure,
-	max_bloom = on_max_bloom,
-	min_bloom = on_min_bloom,
 	max_quantum = on_max_quantum,
 	min_quantum = on_min_quantum
 })
--- Save (OnSave)
+
 function Orchidacite:OnSave()
 	return {
 		SecondForm = self.SecondForm or nil,
-		-- No badge ------------------
+
 		max_levelxp = self.max_levelxp,
 		min_levelxp = self.min_levelxp or nil,
-		------------------------------
+		max_treasure = self.max_treasure,
+		min_treasure = self.min_treasure or nil,
+		max_bloom = self.max_bloom,
+		min_bloom = self.min_bloom or nil,
+
 		max_energy = self.max_energy,
 		min_energy = self.min_energy or nil,
 		max_shield = self.max_shield,
 		min_shield = self.min_shield or nil,
 		max_magic = self.max_magic,
 		min_magic = self.min_magic or nil,
-		max_treasure = self.max_treasure,
-		min_treasure = self.min_treasure or nil,
-		max_bloom = self.max_bloom,
-		min_bloom = self.min_bloom or nil,
 		max_quantum = self.max_quantum,
 		min_quantum = self.min_quantum or nil
 	}
 end
--- Load (OnPreLoad)
+
 function Orchidacite:OnLoad(data)
 	local owner = self.inst
 	if data ~= nil then
 		self.SecondForm = data.SecondForm
 		if data.SecondForm == "TRUE" then self:MorphUp() elseif data.SecondForm == "FALSE" then self:MorphDown() end
-		-- No badge ------------------
+		owner.components.health:DoDelta(0) 
+		owner.components.sanity:DoDelta(0)
+
 		self.max_levelxp = data.max_levelxp
 		self.min_levelxp = data.min_levelxp
 		self:DoDelta("levelxp", 0)
-		------------------------------
+		self.max_treasure = data.max_treasure
+		self.min_treasure = data.min_treasure
+		self:DoDelta("treasure", 0)
+		self.max_bloom = data.max_bloom
+		self.min_bloom = data.min_bloom
+		self:DoDelta("bloom", 0)
+
 		self.max_energy = data.max_energy
 		self.min_energy = data.min_energy
 		self:DoDelta("energy", 0)
@@ -91,84 +89,79 @@ function Orchidacite:OnLoad(data)
 		self.max_magic = data.max_magic
 		self.min_magic = data.min_magic
 		self:DoDelta("magic", 0)
-		self.max_treasure = data.max_treasure
-		self.min_treasure = data.min_treasure
-		self:DoDelta("treasure", 0)
-		self.max_bloom = data.max_bloom
-		self.min_bloom = data.min_bloom
-		self:DoDelta("bloom", 0)
 		self.max_quantum = data.max_quantum
 		self.min_quantum = data.min_quantum
 		self:DoDelta("quantum", 0)
-		------------------------------
-		owner.components.health:DoDelta(0) 
-		owner.components.sanity:DoDelta(0)
 	end
 end
--- Check
+
 function Orchidacite:HasCharge(stype)
 	if stype == "levelxp" then return self.min_levelxp > 0 end
+	if stype == "treasure" then return self.min_treasure > 0 end
+	if stype == "bloom" then return self.min_bloom > 0 end
+	
 	if stype == "energy" then return self.min_energy > 0 end
 	if stype == "shield" then return self.min_shield > 0 end
 	if stype == "magic" then return self.min_magic > 0 end
-	if stype == "treasure" then return self.min_treasure > 0 end
-	if stype == "bloom" then return self.min_bloom > 0 end
 	if stype == "quantum" then return self.min_quantum > 0 end
 end
 function Orchidacite:IsDepleted(stype)
 	if stype == "levelxp" then return self.min_levelxp < 1 end
+	if stype == "treasure" then return self.min_treasure < 1 end
+	if stype == "bloom" then return self.min_bloom < 1 end
+	
 	if stype == "energy" then return self.min_energy < 1 end
 	if stype == "shield" then return self.min_shield < 1 end
 	if stype == "magic" then return self.min_magic < 1 end
-	if stype == "treasure" then return self.min_treasure < 1 end
-	if stype == "bloom" then return self.min_bloom < 1 end
 	if stype == "quantum" then return self.min_quantum < 1 end
 end
--- Set Get Data
+
 function Orchidacite:GetPercent(stype)
 	if stype == "levelxp" then return self.min_levelxp / self.max_levelxp end
+	if stype == "treasure" then return self.min_treasure / self.max_treasure end
+	if stype == "bloom" then return self.min_bloom / self.max_bloom end
+	
 	if stype == "energy" then return self.min_energy / self.max_energy end
 	if stype == "shield" then return self.min_shield / self.max_shield end
 	if stype == "magic" then return self.min_magic / self.max_magic end
-	if stype == "treasure" then return self.min_treasure / self.max_treasure end
-	if stype == "bloom" then return self.min_bloom / self.max_bloom end
 	if stype == "quantum" then return self.min_quantum / self.max_quantum end
 end
 function Orchidacite:SetMax(stype, amount)
 	if stype == "levelxp" then self.max_levelxp = amount; self.min_levelxp = amount; end
+	if stype == "treasure" then self.max_treasure = amount; self.min_treasure = amount; end
+	if stype == "bloom" then self.max_bloom = amount; self.min_bloom = amount; end
+	
 	if stype == "energy" then self.max_energy = amount; self.min_energy = amount; if self.inst.widget_energy_max then self.inst.widget_energy_max:set(amount) end end
 	if stype == "shield" then self.max_shield = amount; self.min_shield = amount; if self.inst.widget_shield_max then self.inst.widget_shield_max:set(amount) end end
 	if stype == "magic" then self.max_magic = amount; self.min_magic = amount; if self.inst.widget_magic_max then self.inst.widget_magic_max:set(amount) end end
-	if stype == "treasure" then self.max_treasure = amount; self.min_treasure = amount; if self.inst.widget_treasure_max then self.inst.widget_treasure_max:set(amount) end end
-	if stype == "bloom" then self.max_bloom = amount; self.min_bloom = amount; if self.inst.widget_bloom_max then self.inst.widget_bloom_max:set(amount) end end
 	if stype == "quantum" then self.max_quantum = amount; self.min_quantum = amount; if self.inst.widget_quantum_max then self.inst.widget_quantum_max:set(amount) end end
 end
 function Orchidacite:SetPercent(stype, p, overtime)
 	if stype == "levelxp" then local old = self.min_levelxp; self.min_levelxp  = p * self.max_levelxp; self.inst:PushEvent("levelxp_delta", { oldpercent = old / self.max_levelxp, newpercent = p, overtime = overtime }) end
+	if stype == "treasure" then local old = self.min_treasure; self.min_treasure  = p * self.max_treasure; self.inst:PushEvent("treasure_delta", { oldpercent = old / self.max_treasure, newpercent = p, overtime = overtime }) end
+	if stype == "bloom" then local old = self.min_bloom; self.min_bloom  = p * self.max_bloom; self.inst:PushEvent("bloom_delta", { oldpercent = old / self.max_bloom, newpercent = p, overtime = overtime }) end
+	
 	if stype == "energy" then local old = self.min_energy; self.min_energy  = p * self.max_energy; self.inst:PushEvent("energy_delta", { oldpercent = old / self.max_energy, newpercent = p, overtime = overtime }) end
 	if stype == "shield" then local old = self.min_shield; self.min_shield  = p * self.max_shield; self.inst:PushEvent("shield_delta", { oldpercent = old / self.max_shield, newpercent = p, overtime = overtime }) end
 	if stype == "magic" then local old = self.min_magic; self.min_magic  = p * self.max_magic; self.inst:PushEvent("magic_delta", { oldpercent = old / self.max_magic, newpercent = p, overtime = overtime }) end
-	if stype == "treasure" then local old = self.min_treasure; self.min_treasure  = p * self.max_treasure; self.inst:PushEvent("treasure_delta", { oldpercent = old / self.max_treasure, newpercent = p, overtime = overtime }) end
-	if stype == "bloom" then local old = self.min_bloom; self.min_bloom  = p * self.max_bloom; self.inst:PushEvent("bloom_delta", { oldpercent = old / self.max_bloom, newpercent = p, overtime = overtime }) end
 	if stype == "quantum" then local old = self.min_quantum; self.min_quantum  = p * self.max_quantum; self.inst:PushEvent("quantum_delta", { oldpercent = old / self.max_quantum, newpercent = p, overtime = overtime }) end
 end
--- Delta
+
 function Orchidacite:DoDelta(stype, delta, overtime, ignore_invincible)
     if not ignore_invincible and (self.inst.components.health.invincible == true and not self.inst.sg:HasStateTag("tent")) or self.inst.is_teleporting == true then
         return
     end
 	if stype == "levelxp" then local old = self.min_levelxp; local new = math.clamp(self.min_levelxp + delta, 0, self.max_levelxp); self.min_levelxp = new; self.inst:PushEvent("levelxp_delta", { oldpercent = old / self.max_levelxp, newpercent = self.min_levelxp / self.max_levelxp, overtime = overtime }) end
+	if stype == "treasure" then local old = self.min_treasure; local new = math.clamp(self.min_treasure + delta, 0, self.max_treasure); self.min_treasure = new; self.inst:PushEvent("treasure_delta", { oldpercent = old / self.max_treasure, newpercent = self.min_treasure / self.max_treasure, overtime = overtime }) end
+	if stype == "bloom" then local old = self.min_bloom; local new = math.clamp(self.min_bloom + delta, 0, self.max_bloom); self.min_bloom = new; self.inst:PushEvent("bloom_delta", { oldpercent = old / self.max_bloom, newpercent = self.min_bloom / self.max_bloom, overtime = overtime }) end
+	
 	if stype == "energy" then local old = self.min_energy; local new = math.clamp(self.min_energy + delta, 0, self.max_energy); self.min_energy = new; self.inst:PushEvent("energy_delta", { oldpercent = old / self.max_energy, newpercent = self.min_energy / self.max_energy, overtime = overtime }) end
 	if stype == "shield" then local old = self.min_shield; local new = math.clamp(self.min_shield + delta, 0, self.max_shield); self.min_shield = new; self.inst:PushEvent("shield_delta", { oldpercent = old / self.max_shield, newpercent = self.min_shield / self.max_shield, overtime = overtime }) end
 	if stype == "magic" then local old = self.min_magic; local new = math.clamp(self.min_magic + delta, 0, self.max_magic); self.min_magic = new; self.inst:PushEvent("magic_delta", { oldpercent = old / self.max_magic, newpercent = self.min_magic / self.max_magic, overtime = overtime }) end
-	if stype == "treasure" then local old = self.min_treasure; local new = math.clamp(self.min_treasure + delta, 0, self.max_treasure); self.min_treasure = new; self.inst:PushEvent("treasure_delta", { oldpercent = old / self.max_treasure, newpercent = self.min_treasure / self.max_treasure, overtime = overtime }) end
-	if stype == "bloom" then local old = self.min_bloom; local new = math.clamp(self.min_bloom + delta, 0, self.max_bloom); self.min_bloom = new; self.inst:PushEvent("bloom_delta", { oldpercent = old / self.max_bloom, newpercent = self.min_bloom / self.max_bloom, overtime = overtime }) end
 	if stype == "quantum" then local old = self.min_quantum; local new = math.clamp(self.min_quantum + delta, 0, self.max_quantum); self.min_quantum = new; self.inst:PushEvent("quantum_delta", { oldpercent = old / self.max_quantum, newpercent = self.min_quantum / self.max_quantum, overtime = overtime }) end
 end
--- Instead of putting that code above inside my character prefab, I just make a new component
---------------------------------------------------------------------------------------------------------------------------------
--- And there you go, the code below where the fun begin
 
+--------------------------------------------------------------------------------------------------------------------------------
 function Orchidacite:LoadStatus(bool)
 	local owner = self.inst
 	if bool == true then
@@ -184,7 +177,7 @@ function Orchidacite:MorphUp()
 	self.inst:AddTag("SecondForm")
 	self.inst:AddTag("fastbuilder")
 	self.inst:PushEvent("Transform[UP]")
-	self.inst:DoTaskInTime(1, self.inst.sg:GoToState("MorphingSG"))
+	self.inst:DoTaskInTime(1, self.inst.sg:GoToState("TransformSG"))
 	SpawnPrefab("statue_transition_2").Transform:SetPosition(self.inst:GetPosition():Get())
 end
 
@@ -196,41 +189,12 @@ function Orchidacite:MorphDown()
 	SpawnPrefab("fx_elec_charged").Transform:SetPosition(self.inst:GetPosition():Get())
 end
 
-function Orchidacite:CantKill(targArr) -- targArr = { babybeefalo = true }
-	local owner = self.inst
-	local untouchables = targArr
-	owner:DoTaskInTime(0, function()
-		local old = owner.replica.combat.IsValidTarget
-		owner.replica.combat.IsValidTarget = function(self, target)
-			if target and untouchables[target.prefab] then
-				return false
-			end
-			return old(self, target)
-		end
-	end)
-end
-
-function Orchidacite:CantEquip(targArr) -- targArr = { spear = true }
-	local owner = self.inst
-	local unequiable = targArr
-	owner:ListenForEvent("equip", function(owner, data)
-		if unequiable[data.item.prefab] then 
-			owner:DoTaskInTime(1, function(owner)
-				owner.components.inventory:GiveItem(data.item)
-			end)
-			owner.components.talker:Say("I can't use that!", 2.5)
-		end
-	end)
-end
-
 -- Attacked
 function Orchidacite:OnAttacked(owner)
-	local SHIELD_COOLDOWN = 0.5
-	owner.DarkShieldTimer = GetTime()
+	local SHIELD_COOLDOWN = 0.2
 	owner:ListenForEvent("attacked", function(inst, data)
-	inst.components.orchidacite:DoDelta("bloom", -1)
 	inst.components.orchidacite:DoDelta("shield", -1)
-		-- Transform
+		-- 2nd form
 		if inst:HasTag("SecondForm") then
 			if not inst.IsBattleMode and not TheWorld.state.isfullmoon then
 			inst.IsBattleMode = true;
@@ -246,6 +210,7 @@ function Orchidacite:OnAttacked(owner)
 					end
 				end)
 			end
+		-- 1st form
 		elseif not inst:HasTag("SecondForm") then
 			if not inst.IsBattleMode and not TheWorld.state.isfullmoon then
 			inst.IsBattleMode = true;
@@ -290,18 +255,15 @@ function Orchidacite:OnAttacked(owner)
 				inst.components.health:DoDelta(30)
 			end)
 		end
-		-- Dark Shield
+		-- Dark Armor (Cold shield - 2nd)
 		if inst:HasTag("SecondForm") and not inst.components.orchidacite:IsDepleted("shield") then
-			if GetTime() - inst.DarkShieldTimer > SHIELD_COOLDOWN then
-				local fx_1 = SpawnPrefab("fx_dark_shield")
-					  fx_1.Transform:SetScale(0.30, 0.30, 0.30)
-					  fx_1.Transform:SetPosition(inst:GetPosition():Get())
-				local fx_2 = SpawnPrefab("fx_fire_ring") 
-					  fx_2.Transform:SetScale(0.5, 0.5, 0.5)
-					  fx_2.Transform:SetPosition(inst:GetPosition():Get())
-				inst.DarkShieldTimer = GetTime() -- Loop
-			end 
-			-- Cold shield
+			local fx_1 = SpawnPrefab("fx_dark_shield")
+				  fx_1.Transform:SetScale(0.30, 0.30, 0.30)
+				  fx_1.Transform:SetPosition(inst:GetPosition():Get())
+			local fx_2 = SpawnPrefab("fx_fire_ring") 
+				  fx_2.Transform:SetScale(0.5, 0.5, 0.5)
+				  fx_2.Transform:SetPosition(inst:GetPosition():Get())
+			-- 
 			local other = data.attacker
 			if other and other.components.health and not other.components.health:IsDead() then
 				if other.components.freezable then
@@ -312,7 +274,7 @@ function Orchidacite:OnAttacked(owner)
 					SpawnPrefab("sparks").Transform:SetPosition(other:GetPosition():Get())
 				end
 			end
-		-- Spark shield
+		-- Spark Armor (Sparks - 1st)
 		elseif not inst:HasTag("SecondForm") and not inst.components.orchidacite:IsDepleted("shield") then
 			local fx1 = SpawnPrefab("fx_spin_electric")
 			local fx2 = SpawnPrefab("fx_elec_charged")
@@ -503,13 +465,13 @@ function Orchidacite:OnBecameHuman(owner)
 			if inst.components.orchidacite.max_shield == 10 then
 				-- Enabled shield when charge hit max
 				if inst.components.orchidacite:HasCharge("shield") and not inst.ShieldMaxCharge then
-					print("Shield Charged | Armor: 55%") -- Printed Once
+					--print("Shield Charged | Armor: 55%") -- Printed Once
 					inst.ShieldMaxCharge = true -- Disabled after using shield
 					inst.UseShield = false
 					inst.OpenShield = false
 					inst.components.health:SetAbsorptionAmount(0.55) -- Add armor effect
 				elseif inst.components.orchidacite:IsDepleted("shield") and not inst.OpenShield then
-					print("Shield Activated | Armor: 0%") -- Printed Once
+					--print("Shield Activated | Armor: 0%") -- Printed Once
 					-- Grant shield after relogin, charge must empty
 					inst.OpenShield = true
 					inst.components.health:SetAbsorptionAmount(0) -- Remove armor effect
@@ -517,13 +479,13 @@ function Orchidacite:OnBecameHuman(owner)
 			elseif inst.components.orchidacite.max_shield == 30 then
 				-- Enabled shield when charge hit max
 				if inst.components.orchidacite:HasCharge("shield") and not inst.ShieldMaxCharge then
-					print("Shield Charged | Armor: 65%") -- Printed Once
+					--print("Shield Charged | Armor: 65%") -- Printed Once
 					inst.ShieldMaxCharge = true -- Disabled after using shield
 					inst.UseShield = false
 					inst.OpenShield = false
 					inst.components.health:SetAbsorptionAmount(0.65) -- Add armor effect
 				elseif inst.components.orchidacite:IsDepleted("shield") and not inst.OpenShield then
-					print("Shield Activated | Armor: 0%") -- Printed Once
+					--print("Shield Activated | Armor: 0%") -- Printed Once
 					-- Grant shield after relogin, charge must empty
 					inst.OpenShield = true
 					inst.components.health:SetAbsorptionAmount(0) -- Remove armor effect
@@ -531,13 +493,13 @@ function Orchidacite:OnBecameHuman(owner)
 			elseif inst.components.orchidacite.max_shield == 50 then
 				-- Enabled shield when charge hit max
 				if inst.components.orchidacite:HasCharge("shield") and not inst.ShieldMaxCharge then
-					print("Shield Charged | Armor: 75%") -- Printed Once
+					--print("Shield Charged | Armor: 75%") -- Printed Once
 					inst.ShieldMaxCharge = true -- Disabled after using shield
 					inst.UseShield = false
 					inst.OpenShield = false
 					inst.components.health:SetAbsorptionAmount(0.75) -- Add armor effect
 				elseif inst.components.orchidacite:IsDepleted("shield") and not inst.OpenShield then
-					print("Shield Activated | Armor: 0%") -- Printed Once
+					--print("Shield Activated | Armor: 0%") -- Printed Once
 					-- Grant shield after relogin, charge must empty
 					inst.OpenShield = true
 					inst.components.health:SetAbsorptionAmount(0) -- Remove armor effect
@@ -545,13 +507,13 @@ function Orchidacite:OnBecameHuman(owner)
 			elseif inst.components.orchidacite.max_shield == 80 then
 				-- Enabled shield when charge hit max
 				if inst.components.orchidacite:HasCharge("shield") and not inst.ShieldMaxCharge then
-					print("Shield Charged | Armor: 85%") -- Printed Once
+					--print("Shield Charged | Armor: 85%") -- Printed Once
 					inst.ShieldMaxCharge = true -- Disabled after using shield
 					inst.UseShield = false
 					inst.OpenShield = false
 					inst.components.health:SetAbsorptionAmount(0.85) -- Add armor effect
 				elseif inst.components.orchidacite:IsDepleted("shield") and not inst.OpenShield then
-					print("Shield Activated | Armor: 0%") -- Printed Once
+					--print("Shield Activated | Armor: 0%") -- Printed Once
 					-- Grant shield after relogin, charge must empty
 					inst.OpenShield = true
 					inst.components.health:SetAbsorptionAmount(0) -- Remove armor effect
@@ -559,13 +521,13 @@ function Orchidacite:OnBecameHuman(owner)
 			elseif inst.components.orchidacite.max_shield == 100 then
 				-- Enabled shield when charge hit max
 				if inst.components.orchidacite:HasCharge("shield") and not inst.ShieldMaxCharge then
-					print("Shield Charged | Armor: 95%") -- Printed Once
+					--print("Shield Charged | Armor: 95%") -- Printed Once
 					inst.ShieldMaxCharge = true -- Disabled after using shield
 					inst.UseShield = false
 					inst.OpenShield = false
 					inst.components.health:SetAbsorptionAmount(0.95) -- Add armor effect
 				elseif inst.components.orchidacite:IsDepleted("shield") and not inst.OpenShield then
-					print("Shield Activated | Armor: 0%") -- Printed Once
+					--print("Shield Activated | Armor: 0%") -- Printed Once
 					-- Grant shield after relogin, charge must empty
 					inst.OpenShield = true
 					inst.components.health:SetAbsorptionAmount(0) -- Remove armor effect
@@ -672,9 +634,11 @@ function Orchidacite:LightningSmite()
 					if not v.components.health:IsDead() then
 						SpawnPrefab("sparks").Transform:SetPosition(v:GetPosition():Get());
 						if v.sg ~= nil and v:HasTag("spider") then v.sg:GoToState("hit_stunlock") else v.sg:GoToState("hit") end
-						v.components.locomotor.groundspeedmultiplier = 0.2
 						--v.components.combat:GetAttacked(owner, 30)
 						v.components.health:DoDelta(-30)
+						if v.components ~= nil then
+							v.components.locomotor.groundspeedmultiplier = 0.2
+						end
 					end
 				end)
 				v:DoTaskInTime(20, function() 
@@ -691,39 +655,6 @@ function Orchidacite:LightningSmite()
 	-- Cost
 	if owner.components.orchidacite then
 		owner.components.orchidacite:DoDelta("magic", -30)
-	end
-end
-
--- Spell Power (Book | Shadow Friends): 4
-local function NoHoles(pt)
-    return not TheWorld.Map:IsPointNearHole(pt)
-end
-function Orchidacite:ShadowFriend()
-	local owner = self.inst;
-	-- Spawn dist
-	local theta = math.random() * 2 * PI
-    local pt = self.inst:GetPosition()
-    local radius = math.random(3, 6)
-    local offset = FindWalkableOffset(pt, theta, radius, 12, true, true, NoHoles)
-    if offset ~= nil then
-        pt.x = pt.x + offset.x
-        pt.z = pt.z + offset.z
-    end
-	if not owner.components.leader:IsBeingFollowedBy("dendrobium_shadow_duelist") then
-		owner.components.petleash:SpawnPetAt(pt.x, 0, pt.z, "dendrobium_shadow_duelist")
-	elseif not owner.components.leader:IsBeingFollowedBy("dendrobium_shadow_lumber") then
-		owner.components.petleash:SpawnPetAt(pt.x, 0, pt.z, "dendrobium_shadow_lumber")
-	elseif not owner.components.leader:IsBeingFollowedBy("dendrobium_shadow_digger") then
-		owner.components.petleash:SpawnPetAt(pt.x, 0, pt.z, "dendrobium_shadow_digger")
-	elseif not owner.components.leader:IsBeingFollowedBy("dendrobium_shadow_miner") then
-		owner.components.petleash:SpawnPetAt(pt.x, 0, pt.z, "dendrobium_shadow_miner")
-	else 
-		owner.components.talker:Say("It seems all my friends already here", 2)
-	end
-	
-	-- Cost
-	if owner.components.orchidacite then
-		owner.components.orchidacite:DoDelta("magic", -20)
 	end
 end
 
